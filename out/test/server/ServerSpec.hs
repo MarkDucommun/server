@@ -12,7 +12,7 @@ spec = do
     let port = PortNumber 8080
     let getClient = get "localhost" port
 
-    it "responds to a simple client request" $ do
+    it "responds to requests with the path" $ do
       threadId <- forkIO $ startServer port
       threadDelay 100
       response <- getClient "/hello"

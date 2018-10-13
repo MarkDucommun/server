@@ -14,8 +14,10 @@ pathHeader path = "GET " ++ path ++ " HTTP/1.1\r\n"
 hostHeader :: String -> PortID -> String
 hostHeader host port = "Host: " ++ host ++ ":" ++ showPort port ++ "\r\n"
 
+cacheControlHeader :: String
 cacheControlHeader = "Cache-Control: no-cache\r\n"
 
+emptyLine :: String
 emptyLine = "\r\n"
 
 showPort :: PortID -> String

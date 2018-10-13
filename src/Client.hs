@@ -12,7 +12,7 @@ import           ClientResponse
 
 data Response
   = OK Body
-  | CREATED
+  | CREATED Body
   | BAD_REQUEST Body
   | NOT_FOUND
   | UNAUTHORIZED
@@ -33,19 +33,20 @@ handleResponse handle = do
   firstLine <- hGetLine handle
   case extractStatus firstLine of
     (Just status) -> case status of
-      200 -> createOkResponse handle
-      201 -> return $ BAD_REQUEST Empty
-      400 -> return $ BAD_REQUEST Empty
-      401 -> return $ BAD_REQUEST Empty
-      404 -> return $ BAD_REQUEST Empty
-    Nothing -> return $ BAD_REQUEST Empty
+      200 -> createResponse handle OK
+      201 -> createResponse handle CREATED
+      400 -> createResponse handle BAD_REQUEST
+      401 -> return UNAUTHORIZED
+      404 -> return $ NOT_FOUND
+      _ -> return $ BAD_REQUEST $ Text $ "Cannot process response status: " ++ (show status)
+    Nothing -> return $ BAD_REQUEST $ Text "Something went wrong processing the response"
 
-createOkResponse :: Handle -> IO Response
-createOkResponse handle = do
+createResponse :: Handle -> (Body -> Response) -> IO Response
+createResponse handle responseCreator = do
   response <- getResponse handle
   case response of
-    (Just body) -> return $ OK $ Text body
-    Nothing -> return $ OK Empty
+    (Just body) -> return $ responseCreator $ Text body
+    Nothing -> return $ responseCreator Empty
 
 extractStatus :: String -> Maybe Int
 extractStatus line = do

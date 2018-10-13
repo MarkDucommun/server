@@ -2,7 +2,6 @@ module ClientResponse
   ( getResponse
   ) where
 
-import           Network
 import           System.IO
 import           Utilities
 
@@ -19,25 +18,24 @@ getResponse handle = do
 
 getResponseWithLength :: Handle -> Int -> IO (Maybe String)
 getResponseWithLength _ 0 = return Nothing
-getResponseWithLength handle length = do
+getResponseWithLength handle length' = do
   line <- hGetLine handle
   case line of
     "\r" -> do
-      body <- getBodyByLength handle length
+      body <- getBodyByLength handle length'
       return $ Just body
-    _ -> getResponseWithLength handle length
+    _ -> getResponseWithLength handle length'
 
 handleContentLengthHeader :: Handle -> String -> IO (Maybe String)
 handleContentLengthHeader handle headerLine = do
   case contentLength headerLine of
-    (Just contentLength) -> getResponseWithLength handle contentLength
+    (Just length') -> getResponseWithLength handle length'
     Nothing              -> getResponse handle
-
-contentLength line = do
-  chars <- contentLengthChars line
-  parseString chars
-
-contentLengthChars line = charsAfter "Content-Length: " line
+  where
+    contentLength line = do
+      chars <- contentLengthChars line
+      parseString chars
+    contentLengthChars line = charsAfter "Content-Length: " line
 
 getBody :: Handle -> IO [String]
 getBody handle = do

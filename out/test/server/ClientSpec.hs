@@ -1,11 +1,13 @@
-module ClientSpec (spec) where
+module ClientSpec
+  ( spec
+  ) where
 
+import           Client
 import           Control.Concurrent
 import           Control.Exception
-import           Test.Hspec
-import           System.IO
-import           Client
 import           Network
+import           System.IO
+import           Test.Hspec
 
 spec :: Spec
 spec = do
@@ -19,37 +21,77 @@ spec = do
         subject "/hello"
         return ()
       withHandleDo port $ \handle -> do
-        assertRequestMatches handle $ [
-            "GET /hello HTTP/1.1\r"
-          , "Host: localhost:8080\r"
-          , "Cache-Control: no-cache\r"
-          , "\r" ]
+        assertRequestMatches handle $
+          ["GET /hello HTTP/1.1\r", "Host: localhost:8080\r", "Cache-Control: no-cache\r", "\r"]
 
     it "reads the response until two empty lines are found" $ do
-      forkIO $ do
-        withHandleDo port $ \handle -> do
-          readLines handle 4
-          putLines handle $ [
-              "HTTP/1.1 200 OK\r\n"
-            , "\r\n"
-            , "HELLO\r\n"
-            , "\r\n" ]
-      threadDelay 100
-      response <- subject "/"
-      response `shouldBe` (OK $ Text "HELLO\r\n")
+      let lines = ["HTTP/1.1 200 OK\r\n", "\r\n", "HELLO\r\n", "\r\n"]
+      readLinesThenServeContent port 4 lines
+      subject `responseShouldBe` (OK $ Text "HELLO\r\n")
 
     it "reads the response body content-length chars past the first empty line" $ do
-      forkIO $ do
-        withHandleDo port $ \handle -> do
-          readLines handle 4
-          putLines handle $ [
-              "HTTP/1.1 200 OK\r\n"
-            , "Content-Length: 5\r\n"
-            , "\r\n"
-            , "HELLO" ]
-      threadDelay 100
-      response <- subject "/"
-      response `shouldBe` (OK $ Text "HELLO")
+      let lines = ["HTTP/1.1 200 OK\r\n","Content-Length: 5\r\n","\r\n","HELLO"]
+      readLinesThenServeContent port 4 lines
+      subject `responseShouldBe` (OK $ Text "HELLO")
+
+    describe "OK" $ do
+      it "can parse empty responses" $ do
+        let lines = ["HTTP/1.1 200 OK\r\n", "Content-Length: 0\r\n", "\r\n"]
+        readLinesThenServeContent port 4 lines
+        subject `responseShouldBe` (OK Empty)
+
+      it "can parse responses with a body" $ do
+        let lines = ["HTTP/1.1 200 OK\r\n", "Content-Length: 5\r\n", "\r\n", "HELLO"]
+        readLinesThenServeContent port 4 lines
+        subject `responseShouldBe` (OK $ Text "HELLO")
+
+    describe "CREATED" $ do
+      it "can parse empty responses" $ do
+        let lines = ["HTTP/1.1 201 CREATED\r\n", "Content-Length: 0\r\n", "\r\n"]
+        readLinesThenServeContent port 4 lines
+        subject `responseShouldBe` (CREATED Empty)
+
+      it "can parse responses with a body" $ do
+        let lines = ["HTTP/1.1 201 CREATED\r\n", "Content-Length: 5\r\n", "\r\n", "HELLO"]
+        readLinesThenServeContent port 4 lines
+        subject `responseShouldBe` (CREATED $ Text "HELLO")
+
+    describe "BAD REQUEST" $ do
+      it "can parse empty responses" $ do
+        let lines = ["HTTP/1.1 400 BAD_REQUEST\r\n", "Content-Length: 0\r\n", "\r\n"]
+        readLinesThenServeContent port 4 lines
+        subject `responseShouldBe` (BAD_REQUEST Empty)
+
+      it "can parse responses with a body" $ do
+        let lines = ["HTTP/1.1 400 BAD_REQUEST\r\n", "Content-Length: 5\r\n", "\r\n", "HELLO"]
+        readLinesThenServeContent port 4 lines
+        subject `responseShouldBe` (BAD_REQUEST $ Text "HELLO")
+
+    describe "UNAUTHORIZED" $ do
+      it "can parse empty responses" $ do
+        let lines = ["HTTP/1.1 401 UNAUTHORIZED\r\n", "Content-Length: 0\r\n", "\r\n"]
+        readLinesThenServeContent port 4 lines
+        subject `responseShouldBe` UNAUTHORIZED
+
+    describe "NOT FOUND" $ do
+      it "can parse empty responses" $ do
+        let lines = ["HTTP/1.1 404 NOT_FOUND\r\n", "Content-Length: 0\r\n", "\r\n"]
+        readLinesThenServeContent port 4 lines
+        subject `responseShouldBe` NOT_FOUND
+
+responseShouldBe :: (String -> IO Response) -> Response -> IO ()
+responseShouldBe fn expected = do
+  threadDelay 100
+  response <- fn "/"
+  response `shouldBe` expected
+
+readLinesThenServeContent :: PortID -> Int -> [String] -> IO ()
+readLinesThenServeContent port linesToRead lines = do
+  forkIO $ do
+      withHandleDo port $ \handle -> do
+        readLines handle linesToRead
+        putLines handle lines
+  return ()
 
 assertRequestMatches :: Handle -> [String] -> IO ()
 assertRequestMatches handle [] = return ()
