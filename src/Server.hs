@@ -3,10 +3,10 @@ module Server
   , PortNumber
   ) where
 
-import           Network
 import           Utilities
 import           System.IO
 import           Control.Concurrent.Chan
+import           Network
 
 startServer :: (Chan Bool) -> PortID -> IO ()
 startServer channel port = withSocketsDo $ do
@@ -29,11 +29,11 @@ respond handle headers =
 continueServing :: Socket -> (Chan Bool) -> IO ()
 continueServing socket channel = do
   message <- readChan channel
-  if (message == True)
-  then do
-    writeChan channel True
-    loop socket channel
-  else sClose socket
+  case message of
+    True -> do
+      writeChan channel True
+      loop socket channel
+    False -> sClose socket
 
 pathResponse :: String -> [String]
 pathResponse path =
@@ -43,7 +43,10 @@ pathResponse path =
   , path]
 
 badRequest :: [String]
-badRequest = ["HTTP/1.1 400 BAD REQUEST\r\n","Content-Length: 0\r\n","\r\n"]
+badRequest =
+  [ "HTTP/1.1 400 BAD REQUEST\r\n"
+  , "Content-Length: 0\r\n"
+  , "\r\n"]
 
 writeResponse :: Handle -> [String] -> IO ()
 writeResponse handle [] = do
