@@ -2,8 +2,8 @@ module ClientRequest
   ( constructRequest
   ) where
 
-import Network
 import Utilities
+import Network
 
 constructRequest :: String -> PortID -> String -> [String]
 constructRequest host port path = [ pathHeader path, hostHeader host port, cacheControlHeader, emptyLine ]

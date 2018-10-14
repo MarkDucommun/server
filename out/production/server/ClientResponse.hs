@@ -1,9 +1,48 @@
 module ClientResponse
-  ( getResponse
+  ( handleResponse
+  , Response (OK, CREATED, BAD_REQUEST, NOT_FOUND, UNAUTHORIZED)
+  , Body (Empty, Text)
   ) where
 
 import           System.IO
 import           Utilities
+
+data Response
+  = OK Body
+  | CREATED Body
+  | BAD_REQUEST Body
+  | NOT_FOUND
+  | UNAUTHORIZED
+  deriving (Show, Eq)
+
+data Body = Empty | Text String deriving (Show, Eq)
+
+handleResponse :: Handle -> IO Response
+handleResponse handle = do
+  firstLine <- hGetLine handle
+  case extractStatus firstLine of
+    (Just status) -> case status of
+      200 -> createResponse handle OK
+      201 -> createResponse handle CREATED
+      400 -> createResponse handle BAD_REQUEST
+      401 -> return UNAUTHORIZED
+      404 -> return NOT_FOUND
+      _ -> return $ BAD_REQUEST $ Text $ "Cannot process response status: " ++ (show status)
+    Nothing -> return $ BAD_REQUEST $ Text "Something went wrong processing the response"
+
+createResponse :: Handle -> (Body -> Response) -> IO Response
+createResponse handle responseCreator = do
+  response <- getResponse handle
+  case response of
+    (Just body) -> return $ responseCreator $ Text body
+    Nothing -> return $ responseCreator Empty
+
+extractStatus :: String -> Maybe Int
+extractStatus line = do
+   status <- charsAfter "HTTP/1.1 " line
+   case split status ' ' of
+     (x:xs) -> parseString x
+     [] -> Nothing
 
 getResponse :: Handle -> IO (Maybe String)
 getResponse handle = do

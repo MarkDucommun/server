@@ -16,5 +16,5 @@ spec = do
       threadId <- forkIO $ startServer port
       threadDelay 100
       response <- getClient "/hello"
-      response `shouldBe` (OK $ Text "hello")
+      response `shouldBe` (OK $ Text "/hello")
       killThread threadId
