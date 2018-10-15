@@ -16,7 +16,7 @@ spec = do
     let getClient = get "localhost" port
 
     it "responds to requests with the path" $ do
-      startServerWithHandler $ \path -> path ++ "blah"
+      startServerWithHandler $ \path -> path
       response <- getClient "/hello"
       response `shouldBe` (OK $ Text "/hello")
 
@@ -26,8 +26,20 @@ spec = do
       response <- handleResponse handle
       response `shouldBe` (BAD_REQUEST Empty)
 
-stopServer :: (Chan Bool) -> IO()
-stopServer channel = writeChan channel False
+    it "can respond to different requests to different paths" $ do
+      channel <- newChan
+      writeChan channel True
+      forkIO $ startServerWithRoutes channel port $
+        [ ("/a", "jam")
+        , ("/b", "honey") ]
+      response <- getClient "/a"
+      response `shouldBe` (OK $ Text "jam")
+      stopServer channel
+      response <- getClient "/b"
+      response `shouldBe` (OK $ Text "honey")
+      response <- getClient "/b"
+      response `shouldBe` (OK $ Text "honer")
+
 
 sendChars :: String -> IO Handle
 sendChars chars = withSocketsDo $ do
@@ -39,6 +51,16 @@ sendChars chars = withSocketsDo $ do
 startServerWithHandler :: (String -> String) -> IO ()
 startServerWithHandler handler = do
   channel <- newChan
-  stopServer channel
+--  stopServer channel
   forkIO $ startServer channel port handler
   return ()
+
+startServerWithHandlers :: [(String,String)] -> IO ()
+startServerWithHandlers handlers = do
+  channel <- newChan
+--  stopServer channel
+  forkIO $ startServerWithRoutes channel port handlers
+  return ()
+
+stopServer :: (Chan Bool) -> IO()
+stopServer channel = writeChan channel False

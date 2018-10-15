@@ -1,5 +1,6 @@
 module Server
   ( startServer
+  , startServerWithRoutes
   , PortNumber
   ) where
 
@@ -7,6 +8,16 @@ import           Utilities
 import           System.IO
 import           Control.Concurrent.Chan
 import           Network
+
+startServerWithRoutes :: (Chan Bool) -> PortID -> [(String, String)] -> IO ()
+startServerWithRoutes channel port handlers = startServer channel port $ \path -> matchRoute handlers path
+
+matchRoute :: [(String, String)] -> String -> String
+matchRoute [] _ = "NO MATCH"
+matchRoute ((path,response):routes) aPath =
+  case path == aPath of
+    True -> response
+    False -> matchRoute routes aPath
 
 startServer :: (Chan Bool) -> PortID -> (String -> String) -> IO ()
 startServer channel port handler = withSocketsDo $ do

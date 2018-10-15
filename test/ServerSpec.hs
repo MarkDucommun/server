@@ -26,8 +26,18 @@ spec = do
       response <- handleResponse handle
       response `shouldBe` (BAD_REQUEST Empty)
 
-stopServer :: (Chan Bool) -> IO()
-stopServer channel = writeChan channel False
+    describe "path matching" $ do
+      it "can respond to different requests to different paths" $ do
+        channel <- newChan
+        writeChan channel True
+        forkIO $ startServerWithRoutes channel port $
+          [ ("/a", "jam")
+          , ("/b", "honey") ]
+        response <- getClient "/a"
+        response `shouldBe` (OK $ Text "jam")
+        stopServer channel
+        response <- getClient "/b"
+        response `shouldBe` (OK $ Text "honey")
 
 sendChars :: String -> IO Handle
 sendChars chars = withSocketsDo $ do
@@ -42,3 +52,13 @@ startServerWithHandler handler = do
   stopServer channel
   forkIO $ startServer channel port handler
   return ()
+
+startServerWithHandlers :: [(String,String)] -> IO ()
+startServerWithHandlers handlers = do
+  channel <- newChan
+  stopServer channel
+  forkIO $ startServerWithRoutes channel port handlers
+  return ()
+
+stopServer :: (Chan Bool) -> IO()
+stopServer channel = writeChan channel False
