@@ -8,31 +8,31 @@ import           System.IO
 import           Control.Concurrent.Chan
 import           Network
 
-startServer :: (Chan Bool) -> PortID -> IO ()
-startServer channel port = withSocketsDo $ do
+startServer :: (Chan Bool) -> PortID -> (String -> String) -> IO ()
+startServer channel port handler = withSocketsDo $ do
   socket <- listenOn port
-  loop socket channel
+  loop socket channel handler
 
-loop :: Socket -> (Chan Bool) -> IO ()
-loop socket channel = do
+loop :: Socket -> (Chan Bool) -> (String -> String) -> IO ()
+loop socket channel handler = do
   (handle, _, _) <- accept socket
   headers <- readHeaders handle
-  respond handle headers
-  continueServing socket channel
+  respond handle headers handler
+  continueServing socket channel handler
 
-respond :: Handle -> [String] -> IO ()
-respond handle headers =
+respond :: Handle -> [String] -> (String -> String) -> IO ()
+respond handle headers handler =
   case getPath headers of
-    (Just path) -> writeResponse handle $ pathResponse path
+    (Just path) -> writeResponse handle $ pathResponse $ handler path
     Nothing -> writeResponse handle badRequest
 
-continueServing :: Socket -> (Chan Bool) -> IO ()
-continueServing socket channel = do
+continueServing :: Socket -> (Chan Bool) -> (String -> String) -> IO ()
+continueServing socket channel handler = do
   message <- readChan channel
   case message of
     True -> do
       writeChan channel True
-      loop socket channel
+      loop socket channel handler
     False -> sClose socket
 
 pathResponse :: String -> [String]

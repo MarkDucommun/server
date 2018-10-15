@@ -10,29 +10,35 @@ import           System.IO
 
 port = PortNumber 8080
 
-withServer :: IO () -> IO ()
-withServer action = do
-  channel <- newChan
-  threadId <- forkIO $ startServer channel port
-  writeChan channel False
-  threadDelay 100
-  action
-  threadDelay 100
-  killThread threadId
-
 spec :: Spec
-spec = around_ withServer $ do
+spec = do
   describe "running a server" $ do
     let getClient = get "localhost" port
 
     it "responds to requests with the path" $ do
+      startServerWithHandler $ \path -> path ++ "blah"
       response <- getClient "/hello"
       response `shouldBe` (OK $ Text "/hello")
 
     it "responds to requests without any path with bad request" $ do
-      withSocketsDo $ do
-        handle <- connectTo "localhost" port
-        hPutStr handle "GET\r\n\r\n\r\n"
-        hFlush handle
-        response <- handleResponse handle
-        response `shouldBe` (BAD_REQUEST Empty)
+      startServerWithHandler $ \path -> path
+      handle <- sendChars "GET\r\n\r\n\r\n"
+      response <- handleResponse handle
+      response `shouldBe` (BAD_REQUEST Empty)
+
+stopServer :: (Chan Bool) -> IO()
+stopServer channel = writeChan channel False
+
+sendChars :: String -> IO Handle
+sendChars chars = withSocketsDo $ do
+  handle <- connectTo "localhost" port
+  hPutStr handle chars
+  hFlush handle
+  return handle
+
+startServerWithHandler :: (String -> String) -> IO ()
+startServerWithHandler handler = do
+  channel <- newChan
+  stopServer channel
+  forkIO $ startServer channel port handler
+  return ()
