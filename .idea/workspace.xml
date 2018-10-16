@@ -2,7 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f3bdd84b-dade-4a53-930d-21745643a705" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/Responses.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/server/Client.hs" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/server/Client.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/server/ClientResponse.hs" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/server/ClientResponse.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/server/Server.hs" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/server/Server.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/test/server/ClientSpec.hs" beforeDir="false" afterPath="$PROJECT_DIR$/out/test/server/ClientSpec.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/test/server/ServerSpec.hs" beforeDir="false" afterPath="$PROJECT_DIR$/out/test/server/ServerSpec.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Client.hs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Client.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ClientRequest.hs" beforeDir="false" afterPath="$PROJECT_DIR$/src/ClientRequest.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ClientResponse.hs" beforeDir="false" afterPath="$PROJECT_DIR$/src/ClientResponse.hs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Server.hs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Server.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Utilities.hs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Utilities.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ClientSpec.hs" beforeDir="false" afterPath="$PROJECT_DIR$/test/ClientSpec.hs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/ServerSpec.hs" beforeDir="false" afterPath="$PROJECT_DIR$/test/ServerSpec.hs" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.stack-work/" />
@@ -24,26 +36,26 @@
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="gitignore" value="1" />
-          <entry key="hs" value="20" />
+          <entry key="hs" value="22" />
           <entry key="yaml" value="2" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="Haskell file" value="20" />
+          <entry key="Haskell file" value="22" />
           <entry key="PLAIN_TEXT" value="1" />
           <entry key="YAML" value="2" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="hs" value="18253" />
+          <entry key="hs" value="22711" />
           <entry key="yaml" value="28" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Haskell file" value="18253" />
+          <entry key="Haskell file" value="22711" />
           <entry key="YAML" value="28" />
         </counts>
       </usages-collector>
@@ -55,20 +67,20 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/ServerSpec.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="361">
-              <caret line="40" lean-forward="true" selection-start-line="40" selection-end-line="40" />
+            <state relative-caret-position="478">
+              <caret line="84" column="26" lean-forward="true" selection-start-line="84" selection-start-column="26" selection-end-line="84" selection-end-column="26" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Server.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="15" column="13" selection-start-line="15" selection-start-column="13" selection-end-line="15" selection-end-column="13" />
+            <state relative-caret-position="445">
+              <caret line="42" column="26" selection-start-line="42" selection-start-column="26" selection-end-line="42" selection-end-column="26" />
             </state>
           </provider>
         </entry>
@@ -76,8 +88,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Client.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="210">
-              <caret line="14" column="39" lean-forward="true" selection-start-line="14" selection-start-column="39" selection-end-line="14" selection-end-column="39" />
+            <state relative-caret-position="255">
+              <caret line="17" column="19" lean-forward="true" selection-start-line="17" selection-start-column="19" selection-end-line="17" selection-end-column="19" />
             </state>
           </provider>
         </entry>
@@ -85,8 +97,17 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/ClientSpec.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="99">
-              <caret line="18" column="17" lean-forward="true" selection-start-line="18" selection-start-column="17" selection-end-line="18" selection-end-column="17" />
+            <state relative-caret-position="435">
+              <caret line="29" column="52" lean-forward="true" selection-start-line="29" selection-start-column="52" selection-end-line="29" selection-end-column="52" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/Utilities.hs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="135">
+              <caret line="9" column="21" selection-start-line="9" selection-start-column="21" selection-end-line="9" selection-end-column="21" />
             </state>
           </provider>
         </entry>
@@ -94,8 +115,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/ClientRequest.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="270">
-              <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
+            <state relative-caret-position="105">
+              <caret line="7" column="26" lean-forward="true" selection-start-line="7" selection-start-column="26" selection-end-line="7" selection-end-column="26" />
             </state>
           </provider>
         </entry>
@@ -105,6 +126,15 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="165">
               <caret line="11" column="16" lean-forward="true" selection-start-line="11" selection-start-column="16" selection-end-line="11" selection-end-column="16" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/Responses.hs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="75">
+              <caret line="5" selection-start-line="5" selection-end-line="5" />
             </state>
           </provider>
         </entry>
@@ -149,14 +179,15 @@
         <option value="$PROJECT_DIR$/src/Lib.hs" />
         <option value="$PROJECT_DIR$/package.yaml" />
         <option value="$PROJECT_DIR$/test/UtilitiesSpec.hs" />
+        <option value="$PROJECT_DIR$/app/Main.hs" />
+        <option value="$PROJECT_DIR$/src/Responses.hs" />
         <option value="$PROJECT_DIR$/src/Utilities.hs" />
         <option value="$PROJECT_DIR$/test/ClientSpec.hs" />
-        <option value="$PROJECT_DIR$/app/Main.hs" />
-        <option value="$PROJECT_DIR$/src/ClientRequest.hs" />
         <option value="$PROJECT_DIR$/src/ClientResponse.hs" />
+        <option value="$PROJECT_DIR$/test/ServerSpec.hs" />
+        <option value="$PROJECT_DIR$/src/ClientRequest.hs" />
         <option value="$PROJECT_DIR$/src/Client.hs" />
         <option value="$PROJECT_DIR$/src/Server.hs" />
-        <option value="$PROJECT_DIR$/test/ServerSpec.hs" />
       </list>
     </option>
   </component>
@@ -166,9 +197,11 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds" fullScreen="true">
-    <option name="width" value="1680" />
-    <option name="height" value="1050" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="11" />
+    <option name="y" value="23" />
+    <option name="width" value="1669" />
+    <option name="height" value="1027" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -200,7 +233,7 @@
     <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file:///Users/markducommun/server/src/Server.hs" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1539605876814" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1539687235959" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
   </component>
@@ -273,15 +306,15 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1538851905103</updated>
-      <workItem from="1538851909197" duration="69898000" />
+      <workItem from="1538851909197" duration="85466000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="69898000" />
+    <option name="totallyTimeSpent" value="85466000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1680" height="1050" extended-state="0" />
+    <frame x="0" y="23" width="1680" height="1027" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Image Layers" />
@@ -289,16 +322,16 @@
       <window_info id="UI Designer" />
       <window_info id="Capture Tool" />
       <window_info id="Favorites" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24969475" />
+      <window_info content_ui="combo" id="Project" order="0" weight="0.32798716" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Database Changes" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" show_stripe_button="false" />
       <window_info anchor="bottom" id="Terminal" />
       <window_info anchor="bottom" id="Event Log" sideWeight="0.50061053" side_tool="true" weight="0.3299285" />
-      <window_info anchor="bottom" id="Messages" sideWeight="0.4993895" weight="0.3299285" />
+      <window_info anchor="bottom" id="Messages" sideWeight="0.4993895" weight="0.32976446" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3299285" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.34582442" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -352,13 +385,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Utilities.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="465">
-          <caret line="31" column="53" lean-forward="true" selection-start-line="31" selection-start-column="53" selection-end-line="31" selection-end-column="53" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/Main.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="120">
@@ -366,10 +392,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/Responses.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="5" selection-start-line="5" selection-end-line="5" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/test/ClientSpec.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="99">
-          <caret line="18" column="17" lean-forward="true" selection-start-line="18" selection-start-column="17" selection-end-line="18" selection-end-column="17" />
+        <state relative-caret-position="435">
+          <caret line="29" column="52" lean-forward="true" selection-start-line="29" selection-start-column="52" selection-end-line="29" selection-end-column="52" />
         </state>
       </provider>
     </entry>
@@ -380,31 +413,38 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/test/ServerSpec.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="478">
+          <caret line="84" column="26" lean-forward="true" selection-start-line="84" selection-start-column="26" selection-end-line="84" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/ClientRequest.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
+        <state relative-caret-position="105">
+          <caret line="7" column="26" lean-forward="true" selection-start-line="7" selection-start-column="26" selection-end-line="7" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Utilities.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="9" column="21" selection-start-line="9" selection-start-column="21" selection-end-line="9" selection-end-column="21" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Client.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" column="39" lean-forward="true" selection-start-line="14" selection-start-column="39" selection-end-line="14" selection-end-column="39" />
+        <state relative-caret-position="255">
+          <caret line="17" column="19" lean-forward="true" selection-start-line="17" selection-start-column="19" selection-end-line="17" selection-end-column="19" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Server.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="15" column="13" selection-start-line="15" selection-start-column="13" selection-end-line="15" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/ServerSpec.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="361">
-          <caret line="40" lean-forward="true" selection-start-line="40" selection-end-line="40" />
+        <state relative-caret-position="445">
+          <caret line="42" column="26" selection-start-line="42" selection-start-column="26" selection-end-line="42" selection-end-column="26" />
         </state>
       </provider>
     </entry>

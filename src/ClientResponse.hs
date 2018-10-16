@@ -19,16 +19,54 @@ data Body = Empty | Text String deriving (Show, Eq)
 
 handleResponse :: Handle -> IO Response
 handleResponse handle = do
-  firstLine <- hGetLine handle
-  case extractStatus firstLine of
-    (Just status) -> case status of
-      200 -> createResponse handle OK
-      201 -> createResponse handle CREATED
-      400 -> createResponse handle BAD_REQUEST
-      401 -> return UNAUTHORIZED
-      404 -> return NOT_FOUND
-      _ -> return $ BAD_REQUEST $ Text $ "Cannot process response status: " ++ (show status)
-    Nothing -> return $ BAD_REQUEST $ Text "Something went wrong processing the response"
+  (headers, body) <- readResponse handle
+  hClose handle
+  case headers of
+    [] -> return $ BAD_REQUEST $ Text "No Headers"
+    (header:_) -> case extractStatus header of
+      (Just status) -> case status of
+        200 -> return $ aCreateResponse body OK
+        201 -> return $ aCreateResponse body CREATED
+        400 -> return $ aCreateResponse body BAD_REQUEST
+        401 -> return UNAUTHORIZED
+        404 -> return NOT_FOUND
+        _ -> return $ BAD_REQUEST $ Text $ "Cannot process response status: " ++ (show status)
+      Nothing -> return $ BAD_REQUEST $ Text "Something went wrong processing the response"
+
+aCreateResponse :: [String] -> (Body -> Response) -> Response
+aCreateResponse [] responseCreator = responseCreator Empty
+aCreateResponse lines responseCreator = responseCreator $ Text $ joinString lines
+
+readResponse :: Handle -> IO ([String], [String])
+readResponse handle = do
+  headers <- getHeaders handle
+  case getContentLength headers of
+    (Just 0) -> return (headers, [])
+    (Just length') -> do
+      body <- getBodyByLength handle length'
+      case body of
+        (Just s) -> return (headers, [s])
+        Nothing -> return (headers, [])
+    Nothing -> do
+      putStrLn "NO LENGTH"
+      body <- getBody handle
+      return (headers, body)
+
+getHeaders :: Handle -> IO [String]
+getHeaders handle = do
+  line <- hGetLine handle
+  case line of
+    "\r" -> return []
+    _ -> do
+      headers <- getHeaders handle
+      return $ [line] ++ headers
+
+getContentLength :: [String] -> Maybe Int
+getContentLength [] = Nothing
+getContentLength (header:headers) = do
+  case charsAfter "Content-Length: " header of
+    (Just chars) -> parseString chars
+    Nothing -> getContentLength headers
 
 createResponse :: Handle -> (Body -> Response) -> IO Response
 createResponse handle responseCreator = do
@@ -62,14 +100,14 @@ getResponseWithLength handle length' = do
   case line of
     "\r" -> do
       body <- getBodyByLength handle length'
-      return $ Just body
+      return body
     _ -> getResponseWithLength handle length'
 
 handleContentLengthHeader :: Handle -> String -> IO (Maybe String)
 handleContentLengthHeader handle headerLine = do
   case contentLength headerLine of
     (Just length') -> getResponseWithLength handle length'
-    Nothing              -> getResponse handle
+    Nothing        -> getResponse handle
   where
     contentLength line = do
       chars <- contentLengthChars line
@@ -85,9 +123,12 @@ getBody handle = do
       lines <- getBody handle
       return $ [line] ++ lines
 
-getBodyByLength :: Handle -> Int -> IO String
-getBodyByLength handle 0 = return ""
+getBodyByLength :: Handle -> Int -> IO (Maybe String)
+getBodyByLength handle 0 = return Nothing
 getBodyByLength handle remainingChars = do
   char <- hGetChar handle
   remaining <- getBodyByLength handle $ remainingChars - 1
-  return $ [char] ++ remaining
+  case remaining of
+    (Just chars) -> return $ Just $ [char] ++ chars
+    Nothing -> return $ Just $ [char]
+

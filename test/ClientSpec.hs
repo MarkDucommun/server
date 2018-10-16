@@ -27,7 +27,7 @@ spec = do
     it "reads the response until two empty lines are found" $ do
       let lines = ["HTTP/1.1 200 OK\r\n", "\r\n", "HELLO\r\n", "\r\n"]
       readLinesThenServeContent port 4 lines
-      subject `responseShouldBe` (OK $ Text "HELLO\r\n")
+      subject `responseShouldBe` (OK $ Text "HELLO\r")
 
     it "reads the response body content-length chars past the first empty line" $ do
       let lines = ["HTTP/1.1 200 OK\r\n","Content-Length: 5\r\n","\r\n","HELLO"]

@@ -1,12 +1,28 @@
 module ClientRequest
-  ( constructRequest
+  ( makeRequest
+  , Host
+  , Path
   ) where
 
-import Utilities
-import Network
+import           Network
+import           System.IO
+import           Utilities
+
+makeRequest :: Handle -> Host -> PortID -> Path -> IO ()
+makeRequest handle host port path = hPutRequest handle $ constructRequest host port path
+
+hPutRequest :: Handle -> [String] -> IO ()
+hPutRequest handle [] = hFlush handle
+hPutRequest handle (line:lines') = do
+  hPutStr handle line
+  hPutRequest handle lines'
+
+type Host = String
+
+type Path = String
 
 constructRequest :: String -> PortID -> String -> [String]
-constructRequest host port path = [ pathHeader path, hostHeader host port, cacheControlHeader, emptyLine ]
+constructRequest host port path = [pathHeader path, hostHeader host port, cacheControlHeader, emptyLine]
 
 pathHeader :: String -> String
 pathHeader path = "GET " ++ path ++ " HTTP/1.1\r\n"
@@ -24,6 +40,6 @@ showPort :: PortID -> String
 showPort port =
   case portNumberChars $ show port of
     (Just remaining) -> remaining
-    Nothing -> ""
+    Nothing          -> ""
 
 portNumberChars port = charsAfter "PortNumber " port

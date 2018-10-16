@@ -7,6 +7,7 @@ module Utilities
 
 joinString :: [String] -> String
 joinString [] = ""
+joinString (x:[]) = x
 joinString (x:xs) = x ++ "\n" ++ joinString xs
 
 charsAfter :: String -> String -> Maybe String
