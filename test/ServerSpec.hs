@@ -41,10 +41,21 @@ spec = do
       it "can handle a route with params" $ do
         channel <- newChan
         writeChan channel False
-        forkIO $ startServer' channel port $ \(path, params) -> do
+        forkIO $ startServer' channel port $ \(path, params) ->
           case findParam params "a" of
             (Just value) -> R.OK $ R.Text value
             Nothing -> R.NOT_FOUND
+        "/b?a=c&d=e" `getShouldRespond` (C.OK $ C.Text "c")
+
+      it "can handle routes with params" $ do
+        channel <- newChan
+        writeChan channel False
+        forkIO $ startServer'' channel port [
+          ("/b", \params ->
+            case findParam params "a" of
+              (Just value) -> R.OK $ R.Text value
+              Nothing -> R.NOT_FOUND
+          )]
         "/b?a=c&d=e" `getShouldRespond` (C.OK $ C.Text "c")
 
     describe "formatting response output" $ do
