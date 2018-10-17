@@ -21,4 +21,15 @@ spec = do
     it "fails converting numbers greater than " $ do
       parseString "111" `shouldBe` Just 111
 
+  describe "split" $ do
+    describe "when the char to split on is the last in a string" $ do
+      it "does not append an empty string" $ do
+        split "a=" '=' `shouldBe` ["a"]
 
+    describe "when the char to split on is the first in a string" $ do
+      it "does not append an empty string" $ do
+        split "=a" '=' `shouldBe` ["a"]
+
+    describe "when the char to split on are adjacent" $ do
+      it "does not append an empty string" $ do
+        split "a==a" '=' `shouldBe` ["a", "a"]
