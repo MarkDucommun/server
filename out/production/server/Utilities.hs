@@ -25,14 +25,20 @@ reverse' list = inner list []
     inner (x:xs) result = inner xs ([x] ++ result)
 
 split :: String -> Char -> [String]
-split string char = splitInner char string [] ""
+split [] _ = []
+split remaining theChar = splitInner' remaining theChar Nothing
 
-splitInner :: Char -> String -> [String] -> String -> [String]
-splitInner char (x:xs) array accumulator =
-  if x == char
-  then splitInner char xs (array ++ [accumulator]) ""
-  else splitInner char xs array $ accumulator ++ [x]
-splitInner _ [] array accumulator = array ++ [accumulator]
+splitInner' :: String -> Char -> Maybe String -> [String]
+splitInner' [] _ Nothing = []
+splitInner' [] _ (Just value) = [value]
+splitInner' (aChar:remaining) theChar accum =
+  if aChar == theChar
+  then case accum of
+    (Just value) -> [value] ++ (split remaining theChar)
+    Nothing -> split remaining theChar
+  else case accum of
+    (Just value) -> splitInner' remaining theChar $ Just $ value ++ [aChar]
+    Nothing -> splitInner' remaining theChar $ Just [aChar]
 
 parseString :: String -> Maybe Int
 parseString string = parseStringInner (reverse' string) 1 0

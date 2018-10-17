@@ -1,5 +1,6 @@
 module ServerResponse
  ( respond
+ , splitParams
  , Param
  , Request
  ) where
@@ -16,14 +17,14 @@ respond handle headers handler =
   case getPath headers of
     (Just path) -> case  extractPathAndParams path of
       (Just request) -> writeResponse handle $ transformResponse $ handler request
-      Nothing -> writeResponse handle $ transformResponse $ BAD_REQUEST Empty
+      Nothing -> writeResponse handle $ transformResponse $ BAD_REQUEST $ Text "Malformed request path or parameters"
     Nothing -> writeResponse handle $ transformResponse $ BAD_REQUEST Empty
 
 extractPathAndParams :: String -> Maybe Request
 extractPathAndParams fullPath = do
   case split fullPath '?' of
     (path:params:[]) -> do
-      blah <- extractParams $ split params '&'
+      blah <- splitParams params
       Just (path, blah)
     (path:[]) -> Just (path,[])
     _ -> Nothing

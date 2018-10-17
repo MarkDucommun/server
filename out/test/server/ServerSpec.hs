@@ -58,6 +58,24 @@ spec = do
           )]
         "/b?a=c&d=e" `getShouldRespond` (C.OK $ C.Text "c")
 
+      it "rejects malformed query params" $ do
+        channel <- newChan
+        writeChan channel False
+        forkIO $ startServer'' channel port [
+          ("/b", \params ->
+            case findParam params "d" of
+              (Just value) -> R.OK $ R.Text value
+              Nothing -> R.NOT_FOUND
+          )]
+        "/b?a=c&d=" `getShouldRespond` (C.BAD_REQUEST $ C.Text "Malformed request path or parameters")
+
+      it "does not reject no query params" $ do
+        channel <- newChan
+        writeChan channel False
+        forkIO $ startServer'' channel port [
+          ("/b", \_ -> R.OK R.Empty)]
+        "/b?" `getShouldRespond` (C.OK C.Empty)
+
     describe "formatting response output" $ do
       let respondWith = \response -> startWith [("/a", response)]
       let shouldProduce = \response -> "/a" `getShouldRespond` response
