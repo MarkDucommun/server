@@ -10,7 +10,7 @@ module ServerResponse
  , Request
  , PathRequestHandler
  , PathRequestHandler'
- , ReqHandler(A, B)
+ , ReqHandler(A, B, D)
  , pathMatches
  , pathVars
  ) where
@@ -32,7 +32,10 @@ data Request = ParamRequest | ParamPathVarRequest
 type PathRequestHandler = (String, ([Param] -> Response))
 type PathRequestHandler' = (String, ReqHandler)
 
-data ReqHandler = A (ParamRequest -> Response) | B (ParamPathVarRequest -> Response)
+data ReqHandler
+  = A (ParamRequest -> Response)
+  | B (ParamPathVarRequest -> Response)
+  | D Response
 
 respond :: Handle -> [String] -> (PathParamRequest -> Response) -> IO ()
 respond handle headers handler =

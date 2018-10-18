@@ -26,8 +26,8 @@ spec = do
     describe "path matching" $ do
       it "can respond to different requests to different paths" $ do
         channel <- startAndContinue $
-          [ ("/a", (R.OK $ R.Text "jam"))
-          , ("/b", (R.OK $ R.Text "honey"))]
+          [ ("/a", D (R.OK $ R.Text "jam"))
+          , ("/b", D (R.OK $ R.Text "honey"))]
         stopServer channel
 
         "/a" `getShouldRespond` (C.OK $ C.Text "jam")
@@ -50,8 +50,8 @@ spec = do
       it "can handle routes with params" $ do
         channel <- newChan
         writeChan channel False
-        forkIO $ startServer'' channel port [
-          ("/b", \params ->
+        forkIO $ startServer''' channel port [
+          ("/b", A $ \params ->
             case findParam params "a" of
               (Just value) -> R.OK $ R.Text value
               Nothing -> R.NOT_FOUND
@@ -61,8 +61,8 @@ spec = do
       it "rejects malformed query params" $ do
         channel <- newChan
         writeChan channel False
-        forkIO $ startServer'' channel port [
-          ("/b", \params ->
+        forkIO $ startServer''' channel port [
+          ("/b", A $ \params ->
             case findParam params "d" of
               (Just value) -> R.OK $ R.Text value
               Nothing -> R.NOT_FOUND
@@ -72,8 +72,8 @@ spec = do
       it "does not reject no query params" $ do
         channel <- newChan
         writeChan channel False
-        forkIO $ startServer'' channel port [
-          ("/b", \_ -> R.OK R.Empty)]
+        forkIO $ startServer''' channel port [
+          ("/b", A $ \_ -> R.OK R.Empty)]
         "/b?" `getShouldRespond` (C.OK C.Empty)
 
     describe "path variables" $ do
@@ -90,7 +90,7 @@ spec = do
         "/b/1" `getShouldRespond` C.NOT_FOUND
 
     describe "formatting response output" $ do
-      let respondWith = \response -> startWith [("/a", response)]
+      let respondWith = \response -> startWith [("/a", D response)]
       let shouldProduce = \response -> "/a" `getShouldRespond` response
 
       it "OK empty" $ do
@@ -124,18 +124,18 @@ sendChars chars = withSocketsDo $ do
   hFlush handle
   return handle
 
-startWith :: [(String, R.Response)] -> IO ()
+startWith :: [(String, ReqHandler)] -> IO ()
 startWith handlers = do
   channel <- newChan
   stopServer channel
-  _ <- forkIO $ startServer channel port handlers
+  _ <- forkIO $ startServer''' channel port handlers
   return ()
 
-startAndContinue :: [(String, R.Response)] -> IO (Chan Bool)
+startAndContinue :: [(String, ReqHandler)] -> IO (Chan Bool)
 startAndContinue handlers = do
   channel <- newChan
   writeChan channel True
-  _ <- forkIO $ startServer channel port handlers
+  _ <- forkIO $ startServer''' channel port handlers
   return channel
 
 stopServer :: (Chan Bool) -> IO()

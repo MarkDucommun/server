@@ -1,12 +1,10 @@
 module Server
-  ( startServer
-  , startServer'
-  , startServer''
+  ( startServer'
   , startServer'''
   , PortNumber
   , Request
   , ParamPathVarRequest
-  , ReqHandler(A, B)
+  , ReqHandler(A, B, D)
   , PathRequestHandler'
   ) where
 
@@ -20,18 +18,6 @@ import           Utilities
 startServer''' :: (Chan Bool) -> PortID -> [PathRequestHandler'] -> IO ()
 startServer''' channel port handlers =
   startServer' channel port $ \request -> matchRoute'' handlers request
-
-
-startServer'' :: (Chan Bool) -> PortID -> [PathRequestHandler] -> IO ()
-startServer'' channel port handlers = startServer' channel port $ \request -> matchRoute' handlers request
-
-startServer :: (Chan Bool) -> PortID -> [(String, Response)] -> IO ()
-startServer channel port handlers = do
-  startServerWithoutRoutes channel port $ \path -> matchRoute handlers path
-
-startServerWithoutRoutes :: (Chan Bool) -> PortID -> (String -> Response) -> IO ()
-startServerWithoutRoutes channel port handler =
-  startServer' channel port $ \(path, _) -> handler path
 
 startServer' :: (Chan Bool) -> PortID -> (PathParamRequest -> Response) -> IO ()
 startServer' channel port handler =
@@ -55,22 +41,12 @@ shouldServerContinue socket channel handler = do
       loop socket channel handler
     else sClose socket
 
-matchRoute :: [(String, Response)] -> String -> Response
-matchRoute [] _ = NOT_FOUND
-matchRoute ((path, response):routes) aPath =
-  if path == aPath
-    then response
-    else matchRoute routes aPath
-
-matchRoute' :: [PathRequestHandler] -> PathParamRequest -> Response
-matchRoute' [] _ = NOT_FOUND
-matchRoute' ((aPath, fn):remaining) request@(thePath, params) =
-  if aPath == thePath
-  then fn params
-  else matchRoute' remaining request
-
 matchRoute'' :: [PathRequestHandler'] -> PathParamRequest -> Response
 matchRoute'' [] _ = NOT_FOUND
+matchRoute'' ((path, (D response)):remaining) request@(thePath, params) =
+  if path == thePath
+  then response
+  else matchRoute'' remaining request
 matchRoute'' ((path, (A requestHandler)):remaining) request@(thePath, params) =
   if path == thePath
   then requestHandler params
