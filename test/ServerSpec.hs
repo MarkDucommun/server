@@ -5,6 +5,7 @@ module ServerSpec
 import           Client
 import           ClientResponse     as C
 import           Control.Concurrent
+import           Data.Maybe
 import           Network
 import           Responses          as R
 import           Server
@@ -28,65 +29,55 @@ spec = do
       it "can respond to different requests to different paths" $ do
         channel <- startAndContinue [("/a", Static (R.OK $ R.Text "jam")), ("/b", Static (R.OK $ R.Text "honey"))]
         stopServer channel
-        "/a" `getShouldRespond` (C.OK $ C.Text "jam")
-        "/b" `getShouldRespond` (C.OK $ C.Text "honey")
+        "/a" `shouldRespond` (C.OK $ C.Text "jam")
+        "/b" `shouldRespond` (C.OK $ C.Text "honey")
 
       it "responds NOT FOUND when no path matches" $ do
         startWith []
-        "/hello" `getShouldRespond` C.NOT_FOUND
+        "/hello" `shouldRespond` C.NOT_FOUND
 
     describe "params" $ do
       it "can handle a route with params" $ do
         channel <- newChan
         writeChan channel False
         forkIO $
-          startSimpleServer channel port $ \(path, params) ->
-            case findParam params "a" of
-              (Just value) -> R.OK $ R.Text value
-              Nothing      -> R.NOT_FOUND
-        "/b?a=c&d=e" `getShouldRespond` (C.OK $ C.Text "c")
+          startSimpleServer channel port $
+            \(path, params) -> notFoundOr $ findParam params "a" >>= \value -> Just $ R.OK $ R.Text value
+        "/b?a=c&d=e" `shouldRespond` (C.OK $ C.Text "c")
 
       it "can handle routes with params" $ do
         startWith
-          [ ( "/b"
-            , JustParams $ \params ->
-                case findParam params "a" of
-                  (Just value) -> R.OK $ R.Text value
-                  Nothing      -> R.NOT_FOUND)
-          ]
-        "/b?a=c&d=e" `getShouldRespond` (C.OK $ C.Text "c")
+          [ ( "/b" , JustParams $
+            \params -> notFoundOr $ findParam params "a" >>= \value -> Just $ R.OK $ R.Text value) ]
+        "/b?a=c&d=e" `shouldRespond` (C.OK $ C.Text "c")
 
       it "rejects malformed query params" $ do
         startWith
-          [ ( "/b"
-            , JustParams $ \params ->
-                case findParam params "d" of
-                  (Just value) -> R.OK $ R.Text value
-                  Nothing      -> R.NOT_FOUND)
-          ]
-        "/b?a=c&d=" `getShouldRespond` (C.BAD_REQUEST $ C.Text "Malformed request path or parameters")
+          [ ( "/b" , JustParams $
+            \params -> notFoundOr $ findParam params "d" >>= \value -> Just $ R.OK $ R.Text value) ]
+        "/b?a=c&d=" `shouldRespond` (C.BAD_REQUEST $ C.Text "Malformed request path or parameters")
 
       it "does not reject no query params" $ do -- TODO is this actually appropriate, maybe do not respond in this case
         startWith [("/b", JustParams $ \_ -> R.OK R.Empty)]
-        "/b?" `getShouldRespond` (C.OK C.Empty)
+        "/b?" `shouldRespond` (C.OK C.Empty)
 
     describe "path variables" $ do
       it "can pass path variables to a request handler" $ do
-        startWith [("/b/{a}", B $ \request ->
+        startWith [("/b/{a}", ParamsAndPathVars $ \request ->
           case request of
             (_, pathVars) -> case findParam pathVars "a" of
                (Just value) -> R.OK $ R.Text value
                Nothing      -> R.NOT_FOUND
           )]
-        "/b/1" `getShouldRespond` (C.OK $ C.Text "1")
+        "/b/1" `shouldRespond` (C.OK $ C.Text "1")
 
       it "does not match for path variables if the request handler does not request path variables" $ do
         startWith [("/b/{a}", JustParams $ \_ -> R.NOT_FOUND)]
-        "/b/1" `getShouldRespond` C.NOT_FOUND
+        "/b/1" `shouldRespond` C.NOT_FOUND
 
     describe "formatting response output" $ do
       let serverRespondingWith = \response -> startWith [("/a", Static response)]
-      let shouldProduce = \response -> "/a" `getShouldRespond` response
+      let shouldProduce = \response -> "/a" `shouldRespond` response
 
       it "OK empty" $ do
         serverRespondingWith $ R.OK R.Empty
@@ -112,13 +103,6 @@ spec = do
         serverRespondingWith $ R.UNAUTHORIZED
         shouldProduce $ C.UNAUTHORIZED
 
-sendChars :: String -> IO Handle
-sendChars chars =
-  withSocketsDo $ do
-    handle <- connectTo "localhost" port
-    hPutStr handle chars
-    hFlush handle
-    return handle
 
 startWith :: [(String, ReqHandler)] -> IO ()
 startWith handlers = do
@@ -126,6 +110,19 @@ startWith handlers = do
   stopServer channel
   _ <- forkIO $ startServer channel port handlers
   return ()
+
+shouldRespond :: String -> C.Response -> IO ()
+shouldRespond path expected = do
+  response <- client path
+  response `shouldBe` expected
+
+sendChars :: String -> IO Handle
+sendChars chars =
+  withSocketsDo $ do
+    handle <- connectTo "localhost" port
+    hPutStr handle chars
+    hFlush handle
+    return handle
 
 startAndContinue :: [(String, ReqHandler)] -> IO (Chan Bool)
 startAndContinue handlers = do
@@ -137,14 +134,13 @@ startAndContinue handlers = do
 stopServer :: (Chan Bool) -> IO ()
 stopServer channel = writeChan channel False
 
-getShouldRespond :: String -> C.Response -> IO ()
-getShouldRespond path expected = do
-  response <- client path
-  response `shouldBe` expected
-
 findParam :: [(String, String)] -> String -> Maybe String
 findParam [] _ = Nothing
 findParam ((aKey, aValue):remaining) theKey =
   case aKey == theKey of
     True  -> Just aValue
     False -> findParam remaining theKey
+
+notFoundOr :: Maybe R.Response -> R.Response
+notFoundOr (Just response) = response
+notFoundOr Nothing = R.NOT_FOUND
