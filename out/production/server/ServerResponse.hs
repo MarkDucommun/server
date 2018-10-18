@@ -1,10 +1,11 @@
 module ServerResponse
- ( respond
+ ( respond'
  , Path
  , Param
  , PathVar
  , Request
  , RequestHandler
+ , ImpureRequestHandler
  ) where
 
 import Responses
@@ -19,20 +20,28 @@ type Param = (String, String)
 
 type Request = (Path, [Param])
 type RequestHandler = (Request -> Response)
+type ImpureRequestHandler = (Request -> IO Response)
 
-respond :: Handle -> [String] -> RequestHandler -> IO ()
-respond handle headers responseHandler = sendResponse handle $
+respond' :: Handle -> [String] -> ImpureRequestHandler -> IO ()
+respond' handle headers responseHandler = sendResponse handle $
   headers `transformAndHandleWith` responseHandler `orUse` malformedRequestResponse
 
-transformAndHandleWith :: [String] -> RequestHandler -> Maybe Response
-transformAndHandleWith headers responseHandler =
-  getRawPath headers >>= \rawPath -> rawPath `respondToRawPath` responseHandler
+transformAndHandleWith :: [String] -> ImpureRequestHandler -> IO (Maybe Response)
+transformAndHandleWith headers responseHandler = do
+  case getRawPath headers of
+    (Just rawPath) -> rawPath `respondToRawPath'` responseHandler
+    Nothing -> return Nothing
 
-respondToRawPath :: String -> RequestHandler -> Maybe Response
-respondToRawPath rawPath responseHandler = rawPath `handleWith` responseHandler
+respondToRawPath' :: String -> ImpureRequestHandler -> IO (Maybe Response)
+respondToRawPath' rawPath responseHandler = rawPath `handleWith` responseHandler
 
-handleWith :: String -> RequestHandler -> Maybe Response
-handleWith rawPath handler = extractPathAndParams rawPath >>= \request -> Just $ handler request
+handleWith :: String -> ImpureRequestHandler -> IO (Maybe Response)
+handleWith rawPath handler = do
+  case extractPathAndParams rawPath of
+    (Just request) -> do
+      response <- handler request
+      return $ Just response
+    Nothing -> return Nothing
 
 extractPathAndParams :: String -> Maybe Request
 extractPathAndParams fullPath = do
@@ -65,11 +74,15 @@ getRawPath (header:headers) =
 malformedRequestResponse :: Response
 malformedRequestResponse = BAD_REQUEST $ Text "Malformed request path or parameters"
 
-orUse :: Maybe Response -> Response -> Response
-orUse maybe defaultValue = fromMaybe defaultValue maybe
+orUse :: IO (Maybe Response) -> Response -> IO Response
+orUse maybe defaultValue = do
+  may <- maybe
+  return $ fromMaybe defaultValue may
 
-sendResponse :: Handle -> Response -> IO ()
-sendResponse handle response = writeResponse handle $ transformResponse response
+sendResponse :: Handle -> IO Response -> IO ()
+sendResponse handle response = do
+  resp <- response
+  writeResponse handle $ transformResponse resp
 
 writeResponse :: Handle -> [String] -> IO ()
 writeResponse handle [] = do

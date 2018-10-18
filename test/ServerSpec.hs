@@ -5,6 +5,7 @@ module ServerSpec
 import           Client
 import           ClientResponse     as C
 import           Control.Concurrent
+import           Control.Exception
 import           Data.Maybe
 import           Network
 import           Responses          as R
@@ -74,6 +75,38 @@ spec = do
       it "does not match for path variables if the request handler does not request path variables" $ do
         startWith [("/b/{a}", JustParams $ \_ -> R.NOT_FOUND)]
         "/b/1" `shouldRespond` C.NOT_FOUND
+
+    describe "dealing with IO in Request Handlers" $ do
+      it "can read a file and return it" $ do
+        channel <- newChan
+        writeChan channel False
+        forkIO $
+          startSimpleServer' channel port $ \(path, params) -> do
+            fileContents <- try $ readFile "/Users/markducommun/server/test-assets/test.txt" :: IO (Either IOError String) -- TODO sad, fix this
+            case fileContents of
+              Left _ -> return $ R.NOT_FOUND
+              Right fileStuff -> return $ R.OK $ R.Text fileStuff
+        "/" `shouldRespond` (C.OK $ C.Text "hello")
+
+      it "can use route handlers that are capable of handling IO for Just Params" $ do
+        channel <- newChan
+        writeChan channel False
+        forkIO $ startServer' channel port [( "/a", JustParams' $ \_ -> Impure $ do
+            fileContents <- try $ readFile "/Users/markducommun/server/test-assets/test.txt" :: IO (Either IOError String) -- TODO sad, fix this
+            case fileContents of
+               Left _ ->  return $ R.NOT_FOUND
+               Right fileStuff -> return $ R.OK $ R.Text fileStuff )]
+        "/a" `shouldRespond` (C.OK $ C.Text "hello")
+
+      it "can use route handlers that are capable of handling IO for Params and Path Vars" $ do
+        channel <- newChan
+        writeChan channel False
+        forkIO $ startServer' channel port [( "/a", ParamsAndPathVars' $ \_ -> Impure $ do
+            fileContents <- try $ readFile "/Users/markducommun/server/test-assets/test.txt" :: IO (Either IOError String) -- TODO sad, fix this
+            case fileContents of
+               Left _ ->  return $ R.NOT_FOUND
+               Right fileStuff -> return $ R.OK $ R.Text fileStuff )]
+        "/a" `shouldRespond` (C.OK $ C.Text "hello")
 
     describe "formatting response output" $ do
       let serverRespondingWith = \response -> startWith [("/a", Static response)]
