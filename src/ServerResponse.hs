@@ -3,7 +3,8 @@ module ServerResponse
  , Path
  , Param
  , PathVar
- , PathParamRequest
+ , Request
+ , RequestHandler
  ) where
 
 import Responses
@@ -16,8 +17,8 @@ import Data.Maybe
 type Path = String
 type Param = (String, String)
 
-type PathParamRequest = (Path, [Param])
-type RequestHandler = (PathParamRequest -> Response)
+type Request = (Path, [Param])
+type RequestHandler = (Request -> Response)
 
 respond :: Handle -> [String] -> RequestHandler -> IO ()
 respond handle headers responseHandler = sendResponse handle $
@@ -33,14 +34,14 @@ respondToRawPath rawPath responseHandler = rawPath `handleWith` responseHandler
 handleWith :: String -> RequestHandler -> Maybe Response
 handleWith rawPath handler = extractPathAndParams rawPath >>= \request -> Just $ handler request
 
-extractPathAndParams :: String -> Maybe PathParamRequest
+extractPathAndParams :: String -> Maybe Request
 extractPathAndParams fullPath = do
   case split fullPath '?' of
     (path:rawParams:[]) -> buildPathParamRequest path rawParams
     (path:[]) -> Just (path,[])
     _ -> Nothing
 
-buildPathParamRequest :: String -> String -> Maybe PathParamRequest
+buildPathParamRequest :: String -> String -> Maybe Request
 buildPathParamRequest path rawParams = extractParams rawParams >>= \params -> Just (path, params)
   where
     extractParams rawParams = parseParamList $ split rawParams '&'

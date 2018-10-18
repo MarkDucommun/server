@@ -28,20 +28,20 @@ startServer :: (Chan Bool) -> PortID -> [PathRequestHandler] -> IO ()
 startServer channel port handlers =
   startSimpleServer channel port $ \request -> matchRoute handlers request
 
-startSimpleServer :: (Chan Bool) -> PortID -> (PathParamRequest -> Response) -> IO ()
+startSimpleServer :: (Chan Bool) -> PortID -> RequestHandler -> IO ()
 startSimpleServer channel port handler =
   withSocketsDo $ do
     socket <- listenOn port
     loop socket channel handler
 
-loop :: Socket -> (Chan Bool) -> (PathParamRequest -> Response) -> IO ()
-loop socket channel handler = do
+loop :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
+loop socket channel requestHandler = do
   (handle, _, _) <- accept socket
   headers <- readHeaders handle
-  respond handle headers handler
-  shouldServerContinue socket channel handler
+  respond handle headers requestHandler
+  shouldServerContinue socket channel requestHandler
 
-shouldServerContinue :: Socket -> (Chan Bool) -> (PathParamRequest -> Response) -> IO ()
+shouldServerContinue :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
 shouldServerContinue socket channel handler = do
   shouldContinue <- readChan channel
   if shouldContinue
@@ -50,7 +50,7 @@ shouldServerContinue socket channel handler = do
       loop socket channel handler
     else sClose socket
 
-matchRoute :: [PathRequestHandler] -> PathParamRequest -> Response
+matchRoute :: [PathRequestHandler] -> Request -> Response
 matchRoute [] _ = NOT_FOUND
 matchRoute ((path, (Static response)):remaining) request@(thePath, params) =
   if path == thePath
