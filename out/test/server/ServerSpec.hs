@@ -43,23 +43,25 @@ spec = do
         writeChan channel False
         forkIO $
           startSimpleServer channel port $
-            \(path, params) -> notFoundOr $ findParam params "a" >>= \value -> Just $ R.OK $ R.Text value
+            \(_, params) -> case findParam params "a" of
+              (Just value) -> return $ R.OK $ R.Text value
+              Nothing -> return R.NOT_FOUND
         "/b?a=c&d=e" `shouldRespond` (C.OK $ C.Text "c")
 
       it "can handle routes with params" $ do
         startWith
           [ ( "/b" , JustParams $
-            \params -> notFoundOr $ findParam params "a" >>= \value -> Just $ R.OK $ R.Text value) ]
+            \params -> notFoundOr $ findParam params "a" >>= \value -> Just $ Pure $ R.OK $ R.Text value) ]
         "/b?a=c&d=e" `shouldRespond` (C.OK $ C.Text "c")
 
       it "rejects malformed query params" $ do
         startWith
           [ ( "/b" , JustParams $
-            \params -> notFoundOr $ findParam params "d" >>= \value -> Just $ R.OK $ R.Text value) ]
+            \params -> notFoundOr $ findParam params "d" >>= \value -> Just $ Pure $ R.OK $ R.Text value) ]
         "/b?a=c&d=" `shouldRespond` (C.BAD_REQUEST $ C.Text "Malformed request path or parameters")
 
       it "does not reject no query params" $ do -- TODO is this actually appropriate, maybe do not respond in this case
-        startWith [("/b", JustParams $ \_ -> R.OK R.Empty)]
+        startWith [("/b", JustParams $ \_ -> Pure $ R.OK R.Empty)]
         "/b?" `shouldRespond` (C.OK C.Empty)
 
     describe "path variables" $ do
@@ -67,13 +69,13 @@ spec = do
         startWith [("/b/{a}", ParamsAndPathVars $ \request ->
           case request of
             (_, pathVars) -> case findParam pathVars "a" of
-               (Just value) -> R.OK $ R.Text value
-               Nothing      -> R.NOT_FOUND
+               (Just value) -> Pure $ R.OK $ R.Text value
+               Nothing      -> Pure $ R.NOT_FOUND
           )]
         "/b/1" `shouldRespond` (C.OK $ C.Text "1")
 
       it "does not match for path variables if the request handler does not request path variables" $ do
-        startWith [("/b/{a}", JustParams $ \_ -> R.NOT_FOUND)]
+        startWith [("/b/{a}", JustParams $ \_ -> Pure R.NOT_FOUND)]
         "/b/1" `shouldRespond` C.NOT_FOUND
 
     describe "dealing with IO in Request Handlers" $ do
@@ -81,7 +83,7 @@ spec = do
         channel <- newChan
         writeChan channel False
         forkIO $
-          startSimpleServer' channel port $ \(path, params) -> do
+          startSimpleServer channel port $ \(path, params) -> do
             fileContents <- try $ readFile "/Users/markducommun/server/test-assets/test.txt" :: IO (Either IOError String) -- TODO sad, fix this
             case fileContents of
               Left _ -> return $ R.NOT_FOUND
@@ -91,7 +93,7 @@ spec = do
       it "can use route handlers that are capable of handling IO for Just Params" $ do
         channel <- newChan
         writeChan channel False
-        forkIO $ startServer' channel port [( "/a", JustParams' $ \_ -> Impure $ do
+        forkIO $ startServer channel port [( "/a", JustParams $ \_ -> Impure $ do
             fileContents <- try $ readFile "/Users/markducommun/server/test-assets/test.txt" :: IO (Either IOError String) -- TODO sad, fix this
             case fileContents of
                Left _ ->  return $ R.NOT_FOUND
@@ -101,7 +103,7 @@ spec = do
       it "can use route handlers that are capable of handling IO for Params and Path Vars" $ do
         channel <- newChan
         writeChan channel False
-        forkIO $ startServer' channel port [( "/a", ParamsAndPathVars' $ \_ -> Impure $ do
+        forkIO $ startServer channel port [( "/a", ParamsAndPathVars $ \_ -> Impure $ do
             fileContents <- try $ readFile "/Users/markducommun/server/test-assets/test.txt" :: IO (Either IOError String) -- TODO sad, fix this
             case fileContents of
                Left _ ->  return $ R.NOT_FOUND
@@ -174,6 +176,6 @@ findParam ((aKey, aValue):remaining) theKey =
     True  -> Just aValue
     False -> findParam remaining theKey
 
-notFoundOr :: Maybe R.Response -> R.Response
+notFoundOr :: Maybe Response' -> Response'
 notFoundOr (Just response) = response
-notFoundOr Nothing = R.NOT_FOUND
+notFoundOr Nothing = Pure R.NOT_FOUND
