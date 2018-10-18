@@ -17,19 +17,20 @@ type Path = String
 type Param = (String, String)
 
 type PathParamRequest = (Path, [Param])
+type RequestHandler = (PathParamRequest -> Response)
 
-respond :: Handle -> [String] -> (PathParamRequest -> Response) -> IO ()
+respond :: Handle -> [String] -> RequestHandler -> IO ()
 respond handle headers responseHandler = sendResponse handle $
   headers `transformAndHandleWith` responseHandler `orUse` malformedRequestResponse
 
-transformAndHandleWith :: [String] -> (PathParamRequest -> Response) -> Maybe Response
+transformAndHandleWith :: [String] -> RequestHandler -> Maybe Response
 transformAndHandleWith headers responseHandler =
   getRawPath headers >>= \rawPath -> rawPath `respondToRawPath` responseHandler
 
-respondToRawPath :: String -> (PathParamRequest -> Response) -> Maybe Response
+respondToRawPath :: String -> RequestHandler -> Maybe Response
 respondToRawPath rawPath responseHandler = rawPath `handleWith` responseHandler
 
-handleWith :: String -> (PathParamRequest -> Response) -> Maybe Response
+handleWith :: String -> RequestHandler -> Maybe Response
 handleWith rawPath handler = extractPathAndParams rawPath >>= \request -> Just $ handler request
 
 extractPathAndParams :: String -> Maybe PathParamRequest
