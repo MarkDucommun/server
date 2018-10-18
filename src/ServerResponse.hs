@@ -1,18 +1,40 @@
 module ServerResponse
  ( respond
  , splitParams
+ , Path
  , Param
+ , PathVar
+ , PathParamRequest
+ , ParamRequest
+ , ParamPathVarRequest
  , Request
+ , PathRequestHandler
+ , PathRequestHandler'
+ , ReqHandler(A, B)
+ , pathMatches
+ , pathVars
  ) where
 
 import Responses
 import System.IO
 import Utilities
 
+type Path = String
 type Param = (String, String)
-type Request = (String, [Param])
+type PathVar = (String, String)
 
-respond :: Handle -> [String] -> (Request -> Response) -> IO ()
+type PathParamRequest = (Path, [Param])
+type ParamRequest = [Param]
+type ParamPathVarRequest = ([Param], [PathVar])
+
+data Request = ParamRequest | ParamPathVarRequest
+
+type PathRequestHandler = (String, ([Param] -> Response))
+type PathRequestHandler' = (String, ReqHandler)
+
+data ReqHandler = A (ParamRequest -> Response) | B (ParamPathVarRequest -> Response)
+
+respond :: Handle -> [String] -> (PathParamRequest -> Response) -> IO ()
 respond handle headers handler =
   case getPath headers of
     (Just path) -> case  extractPathAndParams path of
@@ -20,7 +42,7 @@ respond handle headers handler =
       Nothing -> writeResponse handle $ transformResponse $ BAD_REQUEST $ Text "Malformed request path or parameters"
     Nothing -> writeResponse handle $ transformResponse $ BAD_REQUEST Empty
 
-extractPathAndParams :: String -> Maybe Request
+extractPathAndParams :: String -> Maybe PathParamRequest
 extractPathAndParams fullPath = do
   case split fullPath '?' of
     (path:params:[]) -> do
@@ -97,3 +119,77 @@ writeResponse handle [] = do
 writeResponse handle (line:lines) = do
   hPutStr handle line
   writeResponse handle lines
+
+pathVars :: String -> String -> Maybe [PathVar]
+pathVars template aPath = do
+  let templateSegments = split template '/'
+  let pathSegments = split aPath '/'
+  findPathVars templateSegments pathSegments
+
+findPathVars :: [String] -> [String] -> Maybe [PathVar]
+findPathVars (a:[]) (b:[]) =
+  case extractPathVar a b of
+    (Var pathVar) -> Just [pathVar]
+    Match -> Just []
+    NoMatch -> Nothing
+findPathVars (_:_) (_:[]) = Nothing
+findPathVars (_:[]) (_:_) = Nothing
+findPathVars (a:as) (b:bs) =
+  case extractPathVar a b of
+    (Var pathVar) -> do
+      pathVars <- findPathVars as bs
+      Just $ [pathVar] ++ pathVars
+    Match -> findPathVars as bs
+    NoMatch -> Nothing
+
+extractPathVar :: String -> String -> SegmentResult
+extractPathVar ('{':remaining) aSegment = do
+  case pathVarKey remaining of
+    (Just key) -> Var (key, aSegment)
+    Nothing -> NoMatch
+extractPathVar template aSegment =
+  if nonPathVarSegmentsEqual template aSegment
+  then Match
+  else NoMatch
+
+pathVarKey :: String -> Maybe String
+pathVarKey ('}':[]) = Just []
+pathVarKey (_:[]) = Nothing
+pathVarKey (a:as) = do
+  remaining <- pathVarKey as
+  Just $ [a] ++ remaining
+
+nonPathVarSegmentsEqual :: String -> String -> Bool
+nonPathVarSegmentsEqual (a:[]) (b:[]) = a == b
+nonPathVarSegmentsEqual (_:_) (_:[]) = False
+nonPathVarSegmentsEqual (_:[]) (_:_) = False
+nonPathVarSegmentsEqual (a:as) (b:bs) = if a == b then nonPathVarSegmentsEqual as bs else False
+
+data SegmentResult = Var PathVar | Match | NoMatch
+
+pathMatches :: String -> String -> Bool
+pathMatches pathTemplate aPath = do
+  let templateSegments = split pathTemplate '/'
+  let pathSegments = split aPath '/'
+  compareSegments templateSegments pathSegments
+
+compareSegments :: [String] -> [String] -> Bool
+compareSegments (a:[]) (b:[]) = a `segmentsEqual` b
+compareSegments (_:_) (_:[]) = False
+compareSegments (_:[]) (_:_) = False
+compareSegments (a:as) (b:bs) = if a `segmentsEqual` b then compareSegments as bs else False
+
+segmentsEqual :: String -> String -> Bool
+segmentsEqual ('{':remaining) _ = pathVarSegmentsValid remaining
+segmentsEqual (a:[]) (b:[]) = a == b
+segmentsEqual (_:_) (_:[]) = False
+segmentsEqual (_:[]) (_:_) = False
+segmentsEqual (a:templateRemaining) (b:segmentRemaining) =
+  if a == b
+  then segmentsEqual templateRemaining segmentRemaining
+  else False
+
+pathVarSegmentsValid :: String -> Bool
+pathVarSegmentsValid ('}':[]) = True
+pathVarSegmentsValid (_:[]) = False
+pathVarSegmentsValid (_:remaining) = pathVarSegmentsValid remaining

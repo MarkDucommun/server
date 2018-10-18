@@ -76,6 +76,19 @@ spec = do
           ("/b", \_ -> R.OK R.Empty)]
         "/b?" `getShouldRespond` (C.OK C.Empty)
 
+    describe "path variables" $ do
+      it "can pass path variables to a request handler" $ do
+        channel <- newChan
+        writeChan channel False
+        forkIO $ startServer''' channel port [ ("/b/{a}", B $ getPathVarFn "a" )]
+        "/b/1" `getShouldRespond` (C.OK $ C.Text "1")
+
+      it "does not match for path variables if the request handler does not request path variables" $ do
+        channel <- newChan
+        writeChan channel False
+        forkIO $ startServer''' channel port [ ("/b/{a}", A $ \_ -> R.NOT_FOUND)]
+        "/b/1" `getShouldRespond` C.NOT_FOUND
+
     describe "formatting response output" $ do
       let respondWith = \response -> startWith [("/a", response)]
       let shouldProduce = \response -> "/a" `getShouldRespond` response
@@ -139,3 +152,9 @@ findParam ((aKey, aValue):remaining) theKey =
   case aKey == theKey of
     True -> Just aValue
     False -> findParam remaining theKey
+
+getPathVarFn :: String -> ParamPathVarRequest -> R.Response
+getPathVarFn val (params, pathVars) = do
+  case findParam pathVars val of
+    (Just value) -> R.OK $ R.Text value
+    Nothing -> R.NOT_FOUND
