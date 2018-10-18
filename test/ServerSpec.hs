@@ -1,22 +1,23 @@
-module ServerSpec ( spec ) where
+module ServerSpec
+  ( spec
+  ) where
 
-import           Control.Concurrent
-import           Test.Hspec
-import           Server
 import           Client
-import           ClientResponse as C
+import           ClientResponse     as C
+import           Control.Concurrent
 import           Network
+import           Responses          as R
+import           Server
 import           System.IO
-import           Responses as R
+import           Test.Hspec
 
 port = PortNumber 8080
+
 client = get "localhost" port
 
 spec :: Spec
 spec = do
   describe "running a server" $ do
-    let getClient = get "localhost" port
-
     it "responds to requests without any path with bad request" $ do
       startWith []
       handle <- sendChars "GET\r\n\r\n\r\n"
@@ -25,11 +26,8 @@ spec = do
 
     describe "path matching" $ do
       it "can respond to different requests to different paths" $ do
-        channel <- startAndContinue $
-          [ ("/a", D (R.OK $ R.Text "jam"))
-          , ("/b", D (R.OK $ R.Text "honey"))]
+        channel <- startAndContinue [("/a", D (R.OK $ R.Text "jam")), ("/b", D (R.OK $ R.Text "honey"))]
         stopServer channel
-
         "/a" `getShouldRespond` (C.OK $ C.Text "jam")
         "/b" `getShouldRespond` (C.OK $ C.Text "honey")
 
@@ -41,52 +39,50 @@ spec = do
       it "can handle a route with params" $ do
         channel <- newChan
         writeChan channel False
-        forkIO $ startServer' channel port $ \(path, params) ->
-          case findParam params "a" of
-            (Just value) -> R.OK $ R.Text value
-            Nothing -> R.NOT_FOUND
+        forkIO $
+          startSimpleServer channel port $ \(path, params) ->
+            case findParam params "a" of
+              (Just value) -> R.OK $ R.Text value
+              Nothing      -> R.NOT_FOUND
         "/b?a=c&d=e" `getShouldRespond` (C.OK $ C.Text "c")
 
       it "can handle routes with params" $ do
-        channel <- newChan
-        writeChan channel False
-        forkIO $ startServer''' channel port [
-          ("/b", A $ \params ->
-            case findParam params "a" of
-              (Just value) -> R.OK $ R.Text value
-              Nothing -> R.NOT_FOUND
-          )]
+        startWith
+          [ ( "/b"
+            , A $ \params ->
+                case findParam params "a" of
+                  (Just value) -> R.OK $ R.Text value
+                  Nothing      -> R.NOT_FOUND)
+          ]
         "/b?a=c&d=e" `getShouldRespond` (C.OK $ C.Text "c")
 
       it "rejects malformed query params" $ do
-        channel <- newChan
-        writeChan channel False
-        forkIO $ startServer''' channel port [
-          ("/b", A $ \params ->
-            case findParam params "d" of
-              (Just value) -> R.OK $ R.Text value
-              Nothing -> R.NOT_FOUND
-          )]
+        startWith
+          [ ( "/b"
+            , A $ \params ->
+                case findParam params "d" of
+                  (Just value) -> R.OK $ R.Text value
+                  Nothing      -> R.NOT_FOUND)
+          ]
         "/b?a=c&d=" `getShouldRespond` (C.BAD_REQUEST $ C.Text "Malformed request path or parameters")
 
       it "does not reject no query params" $ do
-        channel <- newChan
-        writeChan channel False
-        forkIO $ startServer''' channel port [
-          ("/b", A $ \_ -> R.OK R.Empty)]
+        startWith [("/b", A $ \_ -> R.OK R.Empty)]
         "/b?" `getShouldRespond` (C.OK C.Empty)
 
     describe "path variables" $ do
       it "can pass path variables to a request handler" $ do
-        channel <- newChan
-        writeChan channel False
-        forkIO $ startServer''' channel port [ ("/b/{a}", B $ getPathVarFn "a" )]
+        startWith [("/b/{a}", B $ \request ->
+          case request of
+            ([],[]) -> R.NOT_FOUND
+            (_, pathVars) -> case findParam pathVars "a" of
+               (Just value) -> R.OK $ R.Text value
+               Nothing      -> R.NOT_FOUND
+          )]
         "/b/1" `getShouldRespond` (C.OK $ C.Text "1")
 
       it "does not match for path variables if the request handler does not request path variables" $ do
-        channel <- newChan
-        writeChan channel False
-        forkIO $ startServer''' channel port [ ("/b/{a}", A $ \_ -> R.NOT_FOUND)]
+        startWith [("/b/{a}", A $ \_ -> R.NOT_FOUND)]
         "/b/1" `getShouldRespond` C.NOT_FOUND
 
     describe "formatting response output" $ do
@@ -118,27 +114,28 @@ spec = do
         shouldProduce $ C.UNAUTHORIZED
 
 sendChars :: String -> IO Handle
-sendChars chars = withSocketsDo $ do
-  handle <- connectTo "localhost" port
-  hPutStr handle chars
-  hFlush handle
-  return handle
+sendChars chars =
+  withSocketsDo $ do
+    handle <- connectTo "localhost" port
+    hPutStr handle chars
+    hFlush handle
+    return handle
 
 startWith :: [(String, ReqHandler)] -> IO ()
 startWith handlers = do
   channel <- newChan
   stopServer channel
-  _ <- forkIO $ startServer''' channel port handlers
+  _ <- forkIO $ startServer channel port handlers
   return ()
 
 startAndContinue :: [(String, ReqHandler)] -> IO (Chan Bool)
 startAndContinue handlers = do
   channel <- newChan
   writeChan channel True
-  _ <- forkIO $ startServer''' channel port handlers
+  _ <- forkIO $ startServer channel port handlers
   return channel
 
-stopServer :: (Chan Bool) -> IO()
+stopServer :: (Chan Bool) -> IO ()
 stopServer channel = writeChan channel False
 
 getShouldRespond :: String -> C.Response -> IO ()
@@ -150,11 +147,5 @@ findParam :: [(String, String)] -> String -> Maybe String
 findParam [] _ = Nothing
 findParam ((aKey, aValue):remaining) theKey =
   case aKey == theKey of
-    True -> Just aValue
+    True  -> Just aValue
     False -> findParam remaining theKey
-
-getPathVarFn :: String -> ParamPathVarRequest -> R.Response
-getPathVarFn val (params, pathVars) = do
-  case findParam pathVars val of
-    (Just value) -> R.OK $ R.Text value
-    Nothing -> R.NOT_FOUND
