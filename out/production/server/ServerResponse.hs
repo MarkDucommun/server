@@ -1,6 +1,5 @@
 module ServerResponse
  ( respond
- , splitParams
  , Path
  , Param
  , PathVar
@@ -12,6 +11,7 @@ import System.IO
 import Utilities
 import PathVar
 import TransformResponse
+import Data.Maybe
 
 type Path = String
 type Param = (String, String)
@@ -19,40 +19,53 @@ type Param = (String, String)
 type PathParamRequest = (Path, [Param])
 
 respond :: Handle -> [String] -> (PathParamRequest -> Response) -> IO ()
-respond handle headers handler =
-  case getPath headers of
-    (Just path) -> case  extractPathAndParams path of
-      (Just request) -> writeResponse handle $ transformResponse $ handler request
-      Nothing -> writeResponse handle $ transformResponse $ BAD_REQUEST $ Text "Malformed request path or parameters"
-    Nothing -> writeResponse handle $ transformResponse $ BAD_REQUEST Empty
+respond handle headers responseHandler = sendResponse handle $ headers `transformAndHandleWith` responseHandler `orUse` malformedRequestResponse
+
+transformAndHandleWith :: [String] -> (PathParamRequest -> Response) -> Maybe Response
+transformAndHandleWith headers responseHandler = getRawPath headers >>= \rawPath -> rawPath `respondToRawPath` responseHandler
+
+respondToRawPath :: String -> (PathParamRequest -> Response) -> Maybe Response
+respondToRawPath rawPath responseHandler = rawPath `handleWith` responseHandler
+
+malformedRequestResponse :: Response
+malformedRequestResponse = BAD_REQUEST $ Text "Malformed request path or parameters"
+
+orUse :: Maybe Response -> Response -> Response
+orUse maybe defaultValue = fromMaybe defaultValue maybe
+
+handleWith :: String -> (PathParamRequest -> Response) -> Maybe Response
+handleWith rawPath handler = extractPathAndParams rawPath >>= \request -> Just $ handler request
 
 extractPathAndParams :: String -> Maybe PathParamRequest
 extractPathAndParams fullPath = do
   case split fullPath '?' of
-    (path:params:[]) -> do
-      blah <- splitParams params
-      Just (path, blah)
+    (path:rawParams:[]) -> buildPathParamRequest path rawParams
     (path:[]) -> Just (path,[])
     _ -> Nothing
 
-splitParams :: String -> Maybe [Param]
-splitParams params = extractParams $ split params '&'
+buildPathParamRequest :: String -> String -> Maybe PathParamRequest
+buildPathParamRequest path rawParams = extractParams rawParams >>= \params -> Just (path, params)
+  where
+    extractParams rawParams = parseParamList $ split rawParams '&'
 
-extractParams :: [String] -> Maybe [Param]
-extractParams [] = Just []
-extractParams (param:remaining) = do
-  case split param '=' of
-    (key:value:[]) -> do
-      params <- extractParams remaining
-      Just $ [(key,value)] ++ params
-    _ -> Nothing
+    parseParamList :: [String] -> Maybe [Param]
+    parseParamList [] = Just []
+    parseParamList (param:remaining) = do
+      case split param '=' of
+        (key:value:[]) -> do
+          params <- parseParamList remaining
+          Just $ [(key,value)] ++ params
+        _ -> Nothing
 
-getPath :: [String] -> Maybe String
-getPath [] = Nothing
-getPath (header:headers) =
+getRawPath :: [String] -> Maybe String
+getRawPath [] = Nothing
+getRawPath (header:headers) =
   case split header ' ' of
    (_:path:_) -> Just path
    _ -> Nothing
+
+sendResponse :: Handle -> Response -> IO ()
+sendResponse handle response = writeResponse handle $ transformResponse response
 
 writeResponse :: Handle -> [String] -> IO ()
 writeResponse handle [] = do

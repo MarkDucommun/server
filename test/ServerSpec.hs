@@ -22,11 +22,11 @@ spec = do
       startWith []
       handle <- sendChars "GET\r\n\r\n\r\n"
       response <- handleResponse handle
-      response `shouldBe` (C.BAD_REQUEST C.Empty)
+      response `shouldBe` (C.BAD_REQUEST $ C.Text "Malformed request path or parameters")
 
     describe "path matching" $ do
       it "can respond to different requests to different paths" $ do
-        channel <- startAndContinue [("/a", D (R.OK $ R.Text "jam")), ("/b", D (R.OK $ R.Text "honey"))]
+        channel <- startAndContinue [("/a", Static (R.OK $ R.Text "jam")), ("/b", Static (R.OK $ R.Text "honey"))]
         stopServer channel
         "/a" `getShouldRespond` (C.OK $ C.Text "jam")
         "/b" `getShouldRespond` (C.OK $ C.Text "honey")
@@ -49,7 +49,7 @@ spec = do
       it "can handle routes with params" $ do
         startWith
           [ ( "/b"
-            , A $ \params ->
+            , JustParams $ \params ->
                 case findParam params "a" of
                   (Just value) -> R.OK $ R.Text value
                   Nothing      -> R.NOT_FOUND)
@@ -59,22 +59,21 @@ spec = do
       it "rejects malformed query params" $ do
         startWith
           [ ( "/b"
-            , A $ \params ->
+            , JustParams $ \params ->
                 case findParam params "d" of
                   (Just value) -> R.OK $ R.Text value
                   Nothing      -> R.NOT_FOUND)
           ]
         "/b?a=c&d=" `getShouldRespond` (C.BAD_REQUEST $ C.Text "Malformed request path or parameters")
 
-      it "does not reject no query params" $ do
-        startWith [("/b", A $ \_ -> R.OK R.Empty)]
+      it "does not reject no query params" $ do -- TODO is this actually appropriate, maybe do not respond in this case
+        startWith [("/b", JustParams $ \_ -> R.OK R.Empty)]
         "/b?" `getShouldRespond` (C.OK C.Empty)
 
     describe "path variables" $ do
       it "can pass path variables to a request handler" $ do
         startWith [("/b/{a}", B $ \request ->
           case request of
-            ([],[]) -> R.NOT_FOUND
             (_, pathVars) -> case findParam pathVars "a" of
                (Just value) -> R.OK $ R.Text value
                Nothing      -> R.NOT_FOUND
@@ -82,35 +81,35 @@ spec = do
         "/b/1" `getShouldRespond` (C.OK $ C.Text "1")
 
       it "does not match for path variables if the request handler does not request path variables" $ do
-        startWith [("/b/{a}", A $ \_ -> R.NOT_FOUND)]
+        startWith [("/b/{a}", JustParams $ \_ -> R.NOT_FOUND)]
         "/b/1" `getShouldRespond` C.NOT_FOUND
 
     describe "formatting response output" $ do
-      let respondWith = \response -> startWith [("/a", D response)]
+      let serverRespondingWith = \response -> startWith [("/a", Static response)]
       let shouldProduce = \response -> "/a" `getShouldRespond` response
 
       it "OK empty" $ do
-        respondWith $ R.OK R.Empty
+        serverRespondingWith $ R.OK R.Empty
         shouldProduce $ C.OK $ C.Empty
 
       it "OK Text" $ do
-        respondWith $ R.OK $ R.Text "Some text"
+        serverRespondingWith $ R.OK $ R.Text "Some text"
         shouldProduce $ C.OK $ C.Text "Some text"
 
       it "NOT FOUND" $ do
-        respondWith $ R.NOT_FOUND
+        serverRespondingWith $ R.NOT_FOUND
         shouldProduce C.NOT_FOUND
 
       it "BAD REQUEST empty" $ do
-        respondWith $ R.BAD_REQUEST R.Empty
+        serverRespondingWith $ R.BAD_REQUEST R.Empty
         shouldProduce $ C.BAD_REQUEST $ C.Empty
 
       it "BAD REQUEST Text" $ do
-        respondWith $ R.BAD_REQUEST $ R.Text "blah"
+        serverRespondingWith $ R.BAD_REQUEST $ R.Text "blah"
         shouldProduce $ C.BAD_REQUEST $ C.Text "blah"
 
       it "UNAUTHORIZED" $ do
-        respondWith $ R.UNAUTHORIZED
+        serverRespondingWith $ R.UNAUTHORIZED
         shouldProduce $ C.UNAUTHORIZED
 
 sendChars :: String -> IO Handle

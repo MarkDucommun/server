@@ -2,7 +2,7 @@ module Server
   ( startSimpleServer
   , startServer
   , PortNumber
-  , ReqHandler(A, B, D)
+  , ReqHandler(JustParams, B, Static)
   ) where
 
 import           Control.Concurrent.Chan
@@ -20,9 +20,9 @@ type ParamPathVarRequest = ([Param], [PathVar])
 type PathRequestHandler = (Path, ReqHandler)
 
 data ReqHandler
-  = A (ParamRequest -> Response)
+  = JustParams (ParamRequest -> Response)
   | B (ParamPathVarRequest -> Response)
-  | D Response
+  | Static Response
 
 startServer :: (Chan Bool) -> PortID -> [PathRequestHandler] -> IO ()
 startServer channel port handlers =
@@ -52,11 +52,11 @@ shouldServerContinue socket channel handler = do
 
 matchRoute :: [PathRequestHandler] -> PathParamRequest -> Response
 matchRoute [] _ = NOT_FOUND
-matchRoute ((path, (D response)):remaining) request@(thePath, params) =
+matchRoute ((path, (Static response)):remaining) request@(thePath, params) =
   if path == thePath
   then response
   else matchRoute remaining request
-matchRoute ((path, (A requestHandler)):remaining) request@(thePath, params) =
+matchRoute ((path, (JustParams requestHandler)):remaining) request@(thePath, params) =
   if path == thePath
   then requestHandler params
   else matchRoute remaining request
