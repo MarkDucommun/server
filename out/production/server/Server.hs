@@ -33,19 +33,19 @@ startServer channel port routes = startSimpleServer channel port $ \request -> m
 startSimpleServer :: (Chan Bool) -> PortID -> RequestHandler -> IO ()
 startSimpleServer channel port requestHandler =
   withSocketsDo $ do
-    socket <- listenOn port -- TODO handle exception
+    socket <- listenOn port -- TODO probably log an appropriate message and then shut down
     loop socket channel requestHandler
 
 loop :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
 loop socket channel requestHandler = do
   (handle, _, _) <- accept socket
-  headers <- readHeaders handle -- TODO handle exception
+  headers <- readHeaders handle -- TODO short circuit, respond with a BAD_REQUEST
   respond' handle headers requestHandler
   shouldServerContinue socket channel requestHandler
 
 shouldServerContinue :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
 shouldServerContinue socket channel handler = do
-  shouldContinue <- readChan channel -- TODO handle exception
+  shouldContinue <- readChan channel -- TODO handle exception, not sure what is appropriate
   if shouldContinue
     then do
       writeChan channel True
