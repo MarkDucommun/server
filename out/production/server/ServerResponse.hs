@@ -5,7 +5,6 @@ module ServerResponse
  , PathVar
  , Request
  , RequestHandler
- , ImpureRequestHandler
  ) where
 
 import Responses
@@ -19,23 +18,22 @@ type Path = String
 type Param = (String, String)
 
 type Request = (Path, [Param])
-type RequestHandler = (Request -> Response)
-type ImpureRequestHandler = (Request -> IO Response)
+type RequestHandler = (Request -> IO Response)
 
-respond' :: Handle -> [String] -> ImpureRequestHandler -> IO ()
+respond' :: Handle -> [String] -> RequestHandler -> IO ()
 respond' handle headers responseHandler = sendResponse handle $
   headers `transformAndHandleWith` responseHandler `orUse` malformedRequestResponse
 
-transformAndHandleWith :: [String] -> ImpureRequestHandler -> IO (Maybe Response)
+transformAndHandleWith :: [String] -> RequestHandler -> IO (Maybe Response)
 transformAndHandleWith headers responseHandler = do
   case getRawPath headers of
     (Just rawPath) -> rawPath `respondToRawPath'` responseHandler
     Nothing -> return Nothing
 
-respondToRawPath' :: String -> ImpureRequestHandler -> IO (Maybe Response)
+respondToRawPath' :: String -> RequestHandler -> IO (Maybe Response)
 respondToRawPath' rawPath responseHandler = rawPath `handleWith` responseHandler
 
-handleWith :: String -> ImpureRequestHandler -> IO (Maybe Response)
+handleWith :: String -> RequestHandler -> IO (Maybe Response)
 handleWith rawPath handler = do
   case extractPathAndParams rawPath of
     (Just request) -> do

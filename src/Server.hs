@@ -28,26 +28,22 @@ data ReqHandler
   | Static Response
 
 startServer :: (Chan Bool) -> PortID -> [Route] -> IO ()
-startServer channel port routes =
-  startSimpleServer channel port $ \request -> matchRoute routes request
+startServer channel port routes = startSimpleServer channel port $ \request -> matchRoute routes request
 
-startSimpleServer :: (Chan Bool) -> PortID -> ImpureRequestHandler -> IO ()
+startSimpleServer :: (Chan Bool) -> PortID -> RequestHandler -> IO ()
 startSimpleServer channel port requestHandler =
   withSocketsDo $ do
     socket <- listenOn port -- TODO handle exception
     loop socket channel requestHandler
 
-convertPureToImpure :: RequestHandler -> ImpureRequestHandler
-convertPureToImpure fn = \request -> return $ fn request
-
-loop :: Socket -> (Chan Bool) -> ImpureRequestHandler -> IO ()
+loop :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
 loop socket channel requestHandler = do
   (handle, _, _) <- accept socket
   headers <- readHeaders handle -- TODO handle exception
   respond' handle headers requestHandler
   shouldServerContinue socket channel requestHandler
 
-shouldServerContinue :: Socket -> (Chan Bool) -> ImpureRequestHandler -> IO ()
+shouldServerContinue :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
 shouldServerContinue socket channel handler = do
   shouldContinue <- readChan channel -- TODO handle exception
   if shouldContinue
@@ -77,7 +73,7 @@ matchRoute ((pathTemplate, (ParamsAndPathVars requestHandler)):remaining) reques
 
 readHeaders :: Handle -> IO [String]
 readHeaders handle = do
-  line <- hGetLine handle
+  line <- hGetLine handle -- TODO handle exception
   case line of
     "\r" -> return []
     _ -> do
