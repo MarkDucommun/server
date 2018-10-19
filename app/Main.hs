@@ -1,29 +1,44 @@
 module Main where
 
-import Control.Concurrent.Chan
-import Client as C
-import Server
-import Network
-import Responses as R
+import           Client                  as C
+import           Control.Concurrent.Chan
+import           Network
+import           Responses               as R
+import           Server
 
 main :: IO ()
 main = do
   chan <- newChan
   writeChan chan True
-  startServer chan (PortNumber 8080) [(
-    "/theInternet", JustParams $ \params -> Impure $ do
-      case getUrlAndPath params of
-        (Just (url, path)) -> getTheInternet url path
-        Nothing -> return $ R.BAD_REQUEST $ R.Text "INVALID PARAMS"
-    )]
+  startServer
+    chan
+    (PortNumber 8080)
+    [ ( "/theInternet"
+      , JustParams $ \params ->
+          Impure $ do
+            case getUrlAndPath params of
+              (Just (url, path)) -> getTheInternet url path
+              Nothing -> return $ R.BAD_REQUEST $ R.Text "INVALID PARAMS")
+    , ( "/myComputer"
+      , JustParams $ \params ->
+          Impure $ do
+            case findParam params "path" of
+              (Just path) -> getFileContents path
+              Nothing     -> return $ R.BAD_REQUEST $ R.Text "INVALID PARAMS")
+    ]
 
 getTheInternet :: String -> String -> IO R.Response
 getTheInternet url path = do
   response <- get url (PortNumber 80) path
   case response of
     (C.OK (C.Text body)) -> return $ R.OK $ R.Text $ "OK:\n\n" ++ body
-    (C.OK C.Empty) -> return $ R.OK $ R.Text $ "OK"
-    _ -> return $ R.BAD_REQUEST $ R.Text "BAD"
+    (C.OK C.Empty)       -> return $ R.OK $ R.Text $ "OK"
+    _                    -> return $ R.BAD_REQUEST $ R.Text "BAD"
+
+getFileContents :: String -> IO R.Response
+getFileContents path = do
+  contents <- readFile path
+  return $ R.OK $ R.Text $ "OK:\n\n" ++ contents
 
 getUrlAndPath :: [(String, String)] -> Maybe (String, String)
 getUrlAndPath params = do
