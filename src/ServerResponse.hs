@@ -1,5 +1,5 @@
 module ServerResponse
- ( respond'
+ ( respond
  , Path
  , Param
  , PathVar
@@ -11,8 +11,8 @@ import Responses
 import System.IO
 import Utilities
 import PathVar
-import TransformResponse
 import Data.Maybe
+import ResponseWriter
 
 type Path = String
 type Param = (String, String)
@@ -20,8 +20,8 @@ type Param = (String, String)
 type Request = (Path, [Param])
 type RequestHandler = (Request -> IO Response)
 
-respond' :: Handle -> [String] -> RequestHandler -> IO ()
-respond' handle headers responseHandler = sendResponse handle $
+respond :: Handle -> [String] -> RequestHandler -> IO ()
+respond handle headers responseHandler = sendResponse handle $
   headers `transformAndHandleWith` responseHandler `orUse` malformedRequestResponse
 
 transformAndHandleWith :: [String] -> RequestHandler -> IO (Maybe Response)
@@ -76,16 +76,3 @@ orUse :: IO (Maybe Response) -> Response -> IO Response
 orUse maybe defaultValue = do
   may <- maybe
   return $ fromMaybe defaultValue may
-
-sendResponse :: Handle -> IO Response -> IO ()
-sendResponse handle response = do
-  resp <- response
-  writeResponse handle $ transformResponse resp
-
-writeResponse :: Handle -> [String] -> IO ()
-writeResponse handle [] = do
-  hFlush handle
-  hClose handle
-writeResponse handle (line:lines) = do
-  hPutStr handle line
-  writeResponse handle lines

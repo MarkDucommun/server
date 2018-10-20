@@ -15,8 +15,6 @@ import           Test.Hspec
 
 port = PortNumber 8080
 
-client = get "localhost" port
-
 spec :: Spec
 spec = do
   describe "running a server" $ do
@@ -148,7 +146,7 @@ startWith handlers = do
 
 shouldRespond :: String -> C.Response -> IO ()
 shouldRespond path expected = do
-  response <- client path
+  response <- get "localhost" port path
   response `shouldBe` expected
 
 sendChars :: String -> IO Handle

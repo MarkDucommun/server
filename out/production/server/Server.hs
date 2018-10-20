@@ -12,23 +12,14 @@ import           Responses
 import           ServerResponse
 import           System.IO
 import           Utilities
-import           PathVar
+import           RouteMatching
 
-
-type ParamRequest = [Param]
-type ParamPathVarRequest = ([Param], [PathVar])
-
-type Route = (Path, ReqHandler)
-
-data Response' = Pure Response | Impure (IO Response)
-
-data ReqHandler
-  = JustParams (ParamRequest -> Response')
-  | ParamsAndPathVars (ParamPathVarRequest -> Response')
-  | Static Response
 
 startServer :: (Chan Bool) -> PortID -> [Route] -> IO ()
-startServer channel port routes = startSimpleServer channel port $ \request -> matchRoute routes request
+startServer channel port routes = startSimpleServer channel port $ routeRequest routes
+
+routeRequest :: [Route] -> Request -> IO Response
+routeRequest routes request = matchRoute routes request
 
 startSimpleServer :: (Chan Bool) -> PortID -> RequestHandler -> IO ()
 startSimpleServer channel port requestHandler =
@@ -38,44 +29,38 @@ startSimpleServer channel port requestHandler =
 
 loop :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
 loop socket channel requestHandler = do
-  (handle, _, _) <- accept socket
+  handle <- acceptConnection socket
   headers <- readHeaders handle -- TODO short circuit, respond with a BAD_REQUEST
-  respond' handle headers requestHandler
+  respond handle headers requestHandler
   shouldServerContinue socket channel requestHandler
+  where
+    acceptConnection :: Socket -> IO Handle
+    acceptConnection socket = do
+      (handle, _, _) <- accept socket
+      return handle
 
 shouldServerContinue :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
 shouldServerContinue socket channel handler = do
   shouldContinue <- readChan channel -- TODO handle exception, not sure what is appropriate
   if shouldContinue
-    then do
+    then perpetuateServer socket channel handler
+    else sClose socket
+  where
+    perpetuateServer socket channel handler = do
       writeChan channel True
       loop socket channel handler
-    else sClose socket
-
-matchRoute :: [Route] -> Request -> IO Response
-matchRoute [] _ = return NOT_FOUND
-matchRoute ((path, (Static response)):remaining) request@(thePath, params) =
-  if path == thePath
-  then return response
-  else matchRoute remaining request
-matchRoute ((path, (JustParams requestHandler)):remaining) request@(thePath, params) =
-  if path == thePath
-  then case requestHandler params of
-    (Impure response) -> response
-    (Pure response) -> return response
-  else matchRoute remaining request
-matchRoute ((pathTemplate, (ParamsAndPathVars requestHandler)):remaining) request@(thePath, params) = do
-  case pathVars pathTemplate thePath of
-    (Just thePathVars) -> case requestHandler (params, thePathVars) of
-      (Impure response) -> response
-      (Pure response) -> return response
-    Nothing -> matchRoute remaining request
 
 readHeaders :: Handle -> IO [String]
 readHeaders handle = do
   line <- hGetLine handle -- TODO handle exception
   case line of
     "\r" -> return []
-    _ -> do
+    _ -> handle `addToRemainingHeaders` line
+  where
+    addToRemainingHeaders handle line = do
       remaining <- readHeaders handle
       return $ [line] ++ remaining
+
+
+
+
