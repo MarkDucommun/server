@@ -6,8 +6,9 @@ import           Responses
 import           System.IO
 import           Utilities
 import           RouteMatching
+import           SplitPathAndParams
 
-getRequest :: Handle -> IO (Maybe Request')
+getRequest :: Handle -> IO (Maybe Request)
 getRequest handle = do
   headers <- readHeaders handle
   case createRequestBuilder headers of
@@ -62,7 +63,6 @@ getBodyByLength handle remainingChars = do
 
 getBodyByEmptyLine :: Handle -> IO (Maybe String)
 getBodyByEmptyLine handle = do
-  putStrLn "HERE"
   line <- hGetLine handle
   case line of
     "\r" -> return Nothing
@@ -78,29 +78,6 @@ getMethod (firstLine:_) =
     (method:_) -> Just method
     _ -> Nothing
 getMethod _ = Nothing
-
-splitPathAndParams :: String -> Maybe (Path, [Param])
-splitPathAndParams rawPath =
-  case split rawPath '?' of
-    (path:rawParams:[]) -> buildPathParamRequest path rawParams
-    (path:[]) -> Just (path,[])
-    _ -> Nothing
-
-buildPathParamRequest :: String -> String -> Maybe (Path, [Param])
-buildPathParamRequest path rawParams = extractParams rawParams >>= \params -> Just (path, params)
-  where extractParams rawParams = parseParamList $ split rawParams '&'
-
-parseParamList :: [String] -> Maybe [Param]
-parseParamList [] = Just []
-parseParamList (param:remaining) =
-  case split param '=' of
-    (key:value:[]) -> addToRemainingParams remaining (key, value)
-    _ -> Nothing
-
-addToRemainingParams :: [String] -> Param -> Maybe [Param]
-addToRemainingParams remaining param = do
-  params <- parseParamList remaining
-  Just $ [param] ++ params
 
 readHeaders :: Handle -> IO [String]
 readHeaders handle = do

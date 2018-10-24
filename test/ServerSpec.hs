@@ -147,7 +147,7 @@ spec = do
         shouldProduce $ C.UNAUTHORIZED
 
 
-startWith :: [Route'] -> IO ()
+startWith :: [Route] -> IO ()
 startWith handlers = do
   channel <- newChan
   stopServer channel
@@ -172,7 +172,7 @@ sendChars chars =
     hFlush handle
     return handle
 
-startAndContinue :: [Route'] -> IO (Chan Bool)
+startAndContinue :: [Route] -> IO (Chan Bool)
 startAndContinue handlers = do
   channel <- newChan
   writeChan channel True

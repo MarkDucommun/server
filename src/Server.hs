@@ -3,11 +3,11 @@ module Server
   , startSimpleServer
   , PortNumber
   , Response'(Pure, Impure)
-  , Route'
+  , Route
   , GetRequestHandler (GetStatic, GetJustParams, GetParamsAndPathVars)
   , PostRequestHandler (PostJustPathVars)
-  , RequestHandler' (GET, POST)
-  , Request' (GetRequest, PostRequest, EmptyPostRequest)
+  , RequestHandler (GET, POST)
+  , Request (GetRequest, PostRequest, EmptyPostRequest)
   ) where
 
 import           Control.Concurrent.Chan
@@ -19,9 +19,9 @@ import           RouteMatching
 import           RequestBuilder
 import           ResponseWriter
 
-startServer :: (Chan Bool) -> PortID -> [Route'] -> IO ()
+startServer :: (Chan Bool) -> PortID -> [Route] -> IO ()
 startServer channel port routes = startSimpleServer channel port $ routeRequest routes
-  where routeRequest routes request = matchRoute' routes request
+  where routeRequest routes request = matchRoute routes request
 
 startSimpleServer :: (Chan Bool) -> PortID -> RequestHandler'' -> IO ()
 startSimpleServer channel port requestHandler =
@@ -57,4 +57,4 @@ shouldServerContinue socket channel handler = do
 malformedRequestResponse :: Response
 malformedRequestResponse = BAD_REQUEST $ Text "Malformed request path or parameters"
 
-type RequestHandler'' = (Request' -> IO Response)
+type RequestHandler'' = (Request -> IO Response)
