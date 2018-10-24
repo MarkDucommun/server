@@ -31,6 +31,12 @@ spec = do
         "/a" `shouldRespond` (C.OK $ C.Text "jam")
         "/b" `shouldRespond` (C.OK $ C.Text "honey")
 
+      it "can respond to different requests with the same path but different methods" $ do
+        channel <- startAndContinue [("/a", GET $ GetStatic (R.OK $ R.Text "jam")), ("/a", POST $ PostJustPathVars (\_ -> return $ R.OK $ R.Text "honey"))]
+        stopServer channel
+        "/a" `shouldRespond` (C.OK $ C.Text "jam")
+        "/a" `postShouldRespond` (C.OK $ C.Text "honey")
+
       it "responds NOT FOUND when no path matches" $ do
         startWith []
         "/hello" `shouldRespond` C.NOT_FOUND
@@ -109,14 +115,50 @@ spec = do
         "/a" `shouldRespond` (C.OK $ C.Text "hello")
 
     describe "request types" $ do
+      describe "GET" $ do
+        it "can respond with a static response" $ do
+          startWith $ [("/a", GET $ GetStatic $ R.OK $ R.Text "2")]
+          "/a" `shouldRespond` (C.OK $ C.Text "2")
+
+        it "can handle params" $ do
+          startWith $ [("/a", GET $ GetJustParams $ \params ->
+            case findParam params "b" of
+              (Just param) -> Pure $ R.OK $ R.Text param
+              _ -> Pure $ R.NOT_FOUND
+            )]
+          "/a?b=1" `shouldRespond` (C.OK $ C.Text "1")
+
+        it "can handle params and path vars" $ do
+          startWith $ [("/a/{c}", GET $ GetParamsAndPathVars $ \(params, pathVars) ->
+            case findParam params "b" of
+              (Just param) -> case findParam pathVars "c" of
+                 (Just var) -> Pure $ R.OK $ R.Text $ param ++ var
+              _ -> Pure $ R.NOT_FOUND
+            )]
+          "/a/2?b=1" `shouldRespond` (C.OK $ C.Text "12")
+
       describe "POST" $ do
         it "can respond to a post with empty body" $ do
-          channel <- newChan
-          stopServer channel
-          _ <- forkIO $ startServer channel port $
-            [ ("/a", GET $ GetStatic $ R.OK $ R.Text "1")
-            , ("/a", POST $ PostJustPathVars $ \_ -> return $ R.OK $ R.Text "2") ]
-          "/a" `postShouldRespond` (C.OK $ C.Text "2")
+          startWith $ [("/a/{b}", POST $ PostJustPathVars $ \vars ->
+            case findParam vars "b" of
+              (Just var) -> return $ R.OK $ R.Text var
+              _ -> return $ R.NOT_FOUND
+            )]
+          "/a/2" `postShouldRespond` (C.OK $ C.Text "2")
+
+        it "can respond to a post with a body" $ do
+          startWith $ [("/a", POST $ PostBody $ \body -> return $ R.OK $ R.Text body)]
+          response <- post "localhost" port "/a" $ Text' "2"
+          response `shouldBe` (C.OK $ C.Text "2\r")
+
+        it "can respond to a post with a body and path vars" $ do
+          startWith $ [("/a/{b}", POST $ PostBodyAndPathVars $ \(body, vars) ->
+            case findParam vars "b" of
+                (Just var) -> return $ R.OK $ R.Text $ body ++ var
+                _ -> return $ R.NOT_FOUND
+            )]
+          response <- post "localhost" port "/a/2" $ Text' "1"
+          response `shouldBe` (C.OK $ C.Text "1\r2")
 
     describe "formatting response output" $ do
       let serverRespondingWith = \response -> startWith [("/a", GET $ GetStatic response)]

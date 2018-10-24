@@ -5,7 +5,7 @@ module Server
   , Response'(Pure, Impure)
   , Route
   , GetRequestHandler (GetStatic, GetJustParams, GetParamsAndPathVars)
-  , PostRequestHandler (PostJustPathVars)
+  , PostRequestHandler (PostJustPathVars, PostBody, PostBodyAndPathVars)
   , RequestHandler (GET, POST)
   , Request (GetRequest, PostRequest, EmptyPostRequest)
   ) where
