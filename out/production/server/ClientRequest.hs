@@ -1,7 +1,9 @@
 module ClientRequest
   ( makeRequest
+  , makePostRequest
   , Host
   , Path
+  , PostBody(Empty', Text')
   ) where
 
 import           Network
@@ -11,8 +13,13 @@ import           Utilities
 type Host = String
 type Path = String
 
+data PostBody = Empty' | Text' String
+
 makeRequest :: Handle -> Host -> PortID -> Path -> IO ()
 makeRequest handle host port path = hPutRequest handle $ constructRequest host port path
+
+makePostRequest :: Handle -> Host -> PortID -> Path -> PostBody -> IO ()
+makePostRequest handle host port path body = hPutRequest handle $ constructPostRequest host port path body
 
 hPutRequest :: Handle -> [String] -> IO ()
 hPutRequest handle [] = hFlush handle
@@ -23,14 +30,31 @@ hPutRequest handle (line:lines') = do
 constructRequest :: String -> PortID -> String -> [String]
 constructRequest host port path = [pathHeader path, hostHeader host port, cacheControlHeader, emptyLine]
 
+constructPostRequest :: String -> PortID -> String -> PostBody -> [String]
+constructPostRequest host port path Empty' = [pathHeader' "POST" path, hostHeader host port, cacheControlHeader, emptyLine]
+constructPostRequest host port path (Text' body) =
+  [ pathHeader' "POST" path
+  , hostHeader host port
+  , cacheControlHeader
+  , contentLengthHeader body
+  , emptyLine
+  , body ++ emptyLine
+  , emptyLine]
+
 pathHeader :: String -> String
-pathHeader path = "GET " ++ path ++ " HTTP/1.1\r\n"
+pathHeader path = pathHeader' "GET" path
+
+pathHeader' :: String -> String -> String
+pathHeader' method path = method ++ " " ++ path ++ " HTTP/1.1\r\n"
 
 hostHeader :: String -> PortID -> String
 hostHeader host port = "Host: " ++ host ++ ":" ++ showPort port ++ "\r\n"
 
 cacheControlHeader :: String
 cacheControlHeader = "Cache-Control: no-cache\r\n"
+
+contentLengthHeader :: String -> String
+contentLengthHeader body = "Content-Length: " ++ (show $ length body) ++ "\r\n"
 
 emptyLine :: String
 emptyLine = "\r\n"

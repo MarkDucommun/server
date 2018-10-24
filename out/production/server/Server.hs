@@ -60,7 +60,3 @@ readHeaders handle = do
     addToRemainingHeaders handle line = do
       remaining <- readHeaders handle
       return $ [line] ++ remaining
-
-
-
-

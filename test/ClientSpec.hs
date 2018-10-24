@@ -11,14 +11,14 @@ import           Test.Hspec
 
 spec :: Spec
 spec = do
-  describe "GET client" $ do
+  describe "client" $ do
     let port = PortNumber 8080
-    let subject = get "localhost" port
+    let getClient = get "localhost" port
 
     it "sends the correct HTTP request to the socket" $ do
       forkIO $ do
         threadDelay 100
-        subject "/hello"
+        getClient "/hello"
         return ()
       withHandleDo port $ \handle -> do
         assertRequestMatches handle $
@@ -27,57 +27,85 @@ spec = do
     it "reads the response until two empty lines are found" $ do
       let lines = ["HTTP/1.1 200 OK\r\n", "\r\n", "HELLO\r\n", "\r\n"]
       readLinesThenServeContent port 4 lines
-      subject `responseShouldBe` (OK $ Text "HELLO\r")
+      getClient `responseShouldBe` (OK $ Text "HELLO\r")
 
     it "reads the response body content-length chars past the first empty line" $ do
       let lines = ["HTTP/1.1 200 OK\r\n","Content-Length: 5\r\n","\r\n","HELLO"]
       readLinesThenServeContent port 4 lines
-      subject `responseShouldBe` (OK $ Text "HELLO")
+      getClient `responseShouldBe` (OK $ Text "HELLO")
 
-    describe "OK" $ do
-      it "can parse empty responses" $ do
-        let lines = ["HTTP/1.1 200 OK\r\n", "Content-Length: 0\r\n", "\r\n"]
-        readLinesThenServeContent port 4 lines
-        subject `responseShouldBe` (OK Empty)
+    describe "POST request" $ do
+      describe "Empty body" $ do
+        it "does not send a body" $ do
+          forkIO $ do
+            threadDelay 100
+            post "localhost" port "/hello" Empty'
+            return ()
+          withHandleDo port $ \handle -> do
+            assertRequestMatches handle $
+              ["POST /hello HTTP/1.1\r", "Host: localhost:8080\r", "Cache-Control: no-cache\r", "\r", "\r"]
 
-      it "can parse responses with a body" $ do
-        let lines = ["HTTP/1.1 200 OK\r\n", "Content-Length: 5\r\n", "\r\n", "HELLO"]
-        readLinesThenServeContent port 4 lines
-        subject `responseShouldBe` (OK $ Text "HELLO")
+      describe "Text body" $ do
+        it "sends the body along with a content-length header" $ do
+          forkIO $ do
+            threadDelay 100
+            post "localhost" port "/hello" $ Text' "HELLO"
+            return ()
+          withHandleDo port $ \handle -> do
+            assertRequestMatches handle $
+              [ "POST /hello HTTP/1.1\r"
+              , "Host: localhost:8080\r"
+              , "Cache-Control: no-cache\r"
+              , "Content-Length: 5\r"
+              , "\r"
+              , "HELLO\r"
+              , "\r"]
 
-    describe "CREATED" $ do
-      it "can parse empty responses" $ do
-        let lines = ["HTTP/1.1 201 CREATED\r\n", "Content-Length: 0\r\n", "\r\n"]
-        readLinesThenServeContent port 4 lines
-        subject `responseShouldBe` (CREATED Empty)
+    describe "Response parsing" $ do
+      describe "OK" $ do
+        it "can parse empty responses" $ do
+          let lines = ["HTTP/1.1 200 OK\r\n", "Content-Length: 0\r\n", "\r\n"]
+          readLinesThenServeContent port 4 lines
+          getClient `responseShouldBe` (OK Empty)
 
-      it "can parse responses with a body" $ do
-        let lines = ["HTTP/1.1 201 CREATED\r\n", "Content-Length: 5\r\n", "\r\n", "HELLO"]
-        readLinesThenServeContent port 4 lines
-        subject `responseShouldBe` (CREATED $ Text "HELLO")
+        it "can parse responses with a body" $ do
+          let lines = ["HTTP/1.1 200 OK\r\n", "Content-Length: 5\r\n", "\r\n", "HELLO"]
+          readLinesThenServeContent port 4 lines
+          getClient `responseShouldBe` (OK $ Text "HELLO")
 
-    describe "BAD REQUEST" $ do
-      it "can parse empty responses" $ do
-        let lines = ["HTTP/1.1 400 BAD_REQUEST\r\n", "Content-Length: 0\r\n", "\r\n"]
-        readLinesThenServeContent port 4 lines
-        subject `responseShouldBe` (BAD_REQUEST Empty)
+      describe "CREATED" $ do
+        it "can parse empty responses" $ do
+          let lines = ["HTTP/1.1 201 CREATED\r\n", "Content-Length: 0\r\n", "\r\n"]
+          readLinesThenServeContent port 4 lines
+          getClient `responseShouldBe` (CREATED Empty)
 
-      it "can parse responses with a body" $ do
-        let lines = ["HTTP/1.1 400 BAD_REQUEST\r\n", "Content-Length: 5\r\n", "\r\n", "HELLO"]
-        readLinesThenServeContent port 4 lines
-        subject `responseShouldBe` (BAD_REQUEST $ Text "HELLO")
+        it "can parse responses with a body" $ do
+          let lines = ["HTTP/1.1 201 CREATED\r\n", "Content-Length: 5\r\n", "\r\n", "HELLO"]
+          readLinesThenServeContent port 4 lines
+          getClient `responseShouldBe` (CREATED $ Text "HELLO")
 
-    describe "UNAUTHORIZED" $ do
-      it "can parse empty responses" $ do
-        let lines = ["HTTP/1.1 401 UNAUTHORIZED\r\n", "Content-Length: 0\r\n", "\r\n"]
-        readLinesThenServeContent port 4 lines
-        subject `responseShouldBe` UNAUTHORIZED
+      describe "BAD REQUEST" $ do
+        it "can parse empty responses" $ do
+          let lines = ["HTTP/1.1 400 BAD_REQUEST\r\n", "Content-Length: 0\r\n", "\r\n"]
+          readLinesThenServeContent port 4 lines
+          getClient `responseShouldBe` (BAD_REQUEST Empty)
 
-    describe "NOT FOUND" $ do
-      it "can parse empty responses" $ do
-        let lines = ["HTTP/1.1 404 NOT_FOUND\r\n", "Content-Length: 0\r\n", "\r\n"]
-        readLinesThenServeContent port 4 lines
-        subject `responseShouldBe` NOT_FOUND
+        it "can parse responses with a body" $ do
+          let lines = ["HTTP/1.1 400 BAD_REQUEST\r\n", "Content-Length: 5\r\n", "\r\n", "HELLO"]
+          readLinesThenServeContent port 4 lines
+          getClient `responseShouldBe` (BAD_REQUEST $ Text "HELLO")
+
+      describe "UNAUTHORIZED" $ do
+        it "can parse empty responses" $ do
+          let lines = ["HTTP/1.1 401 UNAUTHORIZED\r\n", "Content-Length: 0\r\n", "\r\n"]
+          readLinesThenServeContent port 4 lines
+          getClient `responseShouldBe` UNAUTHORIZED
+
+      describe "NOT FOUND" $ do
+        it "can parse empty responses" $ do
+          let lines = ["HTTP/1.1 404 NOT_FOUND\r\n", "Content-Length: 0\r\n", "\r\n"]
+          readLinesThenServeContent port 4 lines
+          getClient `responseShouldBe` NOT_FOUND
 
 responseShouldBe :: (String -> IO Response) -> Response -> IO ()
 responseShouldBe fn expected = do
@@ -91,10 +119,14 @@ readLinesThenServeContent port linesToRead lines = do
       withHandleDo port $ \handle -> do
         readLines handle linesToRead
         putLines handle lines
+        hClose handle
   return ()
 
 assertRequestMatches :: Handle -> [String] -> IO ()
-assertRequestMatches handle [] = return ()
+assertRequestMatches handle [] = do
+  let lines = ["HTTP/1.1 200 OK\r\n", "Content-Length: 0\r\n", "\r\n"]
+  putLines handle lines
+  hClose handle
 assertRequestMatches handle (line:lines) = do
   handle `nextLineShouldBe` line
   assertRequestMatches handle lines

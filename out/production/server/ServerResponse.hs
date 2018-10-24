@@ -13,11 +13,8 @@ import Utilities
 import PathVar
 import Data.Maybe
 import ResponseWriter
+import ParamExtractor
 
-type Path = String
-type Param = (String, String)
-
-type Request = (Path, [Param])
 type RequestHandler = (Request -> IO Response)
 
 respond :: Handle -> [String] -> RequestHandler -> IO ()
@@ -40,27 +37,6 @@ handleWith rawPath handler = do
       response <- handler request
       return $ Just response
     Nothing -> return Nothing
-
-extractPathAndParams :: String -> Maybe Request
-extractPathAndParams fullPath = do
-  case split fullPath '?' of
-    (path:rawParams:[]) -> buildPathParamRequest path rawParams
-    (path:[]) -> Just (path,[])
-    _ -> Nothing
-
-buildPathParamRequest :: String -> String -> Maybe Request
-buildPathParamRequest path rawParams = extractParams rawParams >>= \params -> Just (path, params)
-  where
-    extractParams rawParams = parseParamList $ split rawParams '&'
-
-    parseParamList :: [String] -> Maybe [Param]
-    parseParamList [] = Just []
-    parseParamList (param:remaining) = do
-      case split param '=' of
-        (key:value:[]) -> do
-          params <- parseParamList remaining
-          Just $ [(key,value)] ++ params
-        _ -> Nothing
 
 getRawPath :: [String] -> Maybe String
 getRawPath [] = Nothing

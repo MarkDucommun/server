@@ -37,7 +37,7 @@ getTheInternet url path = do
 
 getFileContents :: String -> IO R.Response
 getFileContents path = do
-  contents <- readFile path
+  contents <- readFile path -- TODO handle file not found with a try?
   return $ R.OK $ R.Text $ "OK:\n\n" ++ contents
 
 getUrlAndPath :: [(String, String)] -> Maybe (String, String)

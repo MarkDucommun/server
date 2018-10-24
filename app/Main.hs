@@ -14,13 +14,13 @@ main = do
     chan
     (PortNumber 8080)
     [ ( "/theInternet"
-      , JustParams $ \params ->
+      , GET $ GetJustParams $ \params ->
           Impure $ do
             case getUrlAndPath params of
               (Just (url, path)) -> getTheInternet url path
               Nothing -> return $ R.BAD_REQUEST $ R.Text "INVALID PARAMS")
     , ( "/myComputer"
-      , JustParams $ \params ->
+      , GET $ GetJustParams $ \params ->
           Impure $ do
             case findParam params "path" of
               (Just path) -> getFileContents path
@@ -37,7 +37,7 @@ getTheInternet url path = do
 
 getFileContents :: String -> IO R.Response
 getFileContents path = do
-  contents <- readFile path
+  contents <- readFile path -- TODO handle file not found with a try?
   return $ R.OK $ R.Text $ "OK:\n\n" ++ contents
 
 getUrlAndPath :: [(String, String)] -> Maybe (String, String)
