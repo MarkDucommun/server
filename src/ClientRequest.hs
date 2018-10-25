@@ -1,9 +1,9 @@
 module ClientRequest
   ( makeRequest
-  , makePostRequest
-  , makePutRequest
+  , makeRequestWithBody
   , Host
   , Path
+  , Method
   , Body(Empty, Text)
   ) where
 
@@ -14,15 +14,14 @@ import           Utilities
 
 type Host = String
 type Path = String
+type Method = String
 
 makeRequest :: Handle -> Host -> PortID -> Path -> IO ()
 makeRequest handle host port path = hPutRequest handle $ constructRequest host port path
 
-makePostRequest :: Handle -> Host -> PortID -> Path -> Body -> IO ()
-makePostRequest handle host port path body = hPutRequest handle $ constructPostRequest host port path body
-
-makePutRequest :: Handle -> Host -> PortID -> Path -> Body -> IO ()
-makePutRequest handle host port path body = hPutRequest handle $ constructPutRequest host port path body
+makeRequestWithBody :: Handle -> Host -> PortID -> Method -> Path -> Body -> IO ()
+makeRequestWithBody handle host port method path body =
+ hPutRequest handle $ constructRequestWithBody host port method path body
 
 hPutRequest :: Handle -> [String] -> IO ()
 hPutRequest handle [] = hFlush handle
@@ -37,31 +36,15 @@ constructRequest host port path =
   , cacheControlHeader
   , emptyLine]
 
-constructPostRequest :: String -> PortID -> String -> Body -> [String]
-constructPostRequest host port path Empty =
-  [ pathHeader' "POST" path
+constructRequestWithBody :: Host -> PortID -> Method -> Path -> Body -> [String]
+constructRequestWithBody host port method path Empty =
+  [ pathHeader' method path
   , hostHeader host port
   , cacheControlHeader
   , emptyLine
   , emptyLine]
-constructPostRequest host port path (Text body) =
-  [ pathHeader' "POST" path
-  , hostHeader host port
-  , cacheControlHeader
-  , contentLengthHeader body
-  , emptyLine
-  , body ++ emptyLine
-  , emptyLine]
-
-constructPutRequest :: String -> PortID -> String -> Body -> [String]
-constructPutRequest host port path Empty =
-  [ pathHeader' "PUT" path
-  , hostHeader host port
-  , cacheControlHeader
-  , emptyLine
-  , emptyLine]
-constructPutRequest host port path (Text body) =
-  [ pathHeader' "PUT" path
+constructRequestWithBody host port method path (Text body) =
+  [ pathHeader' method path
   , hostHeader host port
   , cacheControlHeader
   , contentLengthHeader body
