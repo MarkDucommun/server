@@ -17,7 +17,7 @@ main = do
     , ( GET "/myComputer" $ GetJustParams $ getFileContents')
     ]
 
-getTheInternet' :: [(String, String)] -> Response'
+getTheInternet' :: [(String, String)] -> GetResponse
 getTheInternet' params = Impure $
   case getUrlAndPath params of
     (Just (url, path)) -> getTheInternet url path
@@ -31,7 +31,7 @@ getTheInternet url path = do
     (C.OK C.Empty)       -> return $ R.OK $ R.Text $ "OK"
     _                    -> return $ R.BAD_REQUEST $ R.Text "BAD"
 
-getFileContents' :: [(String, String)] -> Response'
+getFileContents' :: [(String, String)] -> GetResponse
 getFileContents' params = Impure $
   case findParam params "path" of
     (Just path) -> getFileContents path

@@ -4,7 +4,7 @@ module RouteMatching
   , Param
   , Route (GET, POST)
   , Request(GetRequest, PostRequest, EmptyPostRequest)
-  , Response'(Pure, Impure)
+  , GetResponse(Pure, Impure)
   , GetRequestHandler (GetStatic, GetJustParams, GetParamsAndPathVars)
   , PostRequestHandler(PostJustPathVars, PostBody, PostBodyAndPathVars)
   ) where
@@ -36,8 +36,8 @@ data Route
   | POST Path PostRequestHandler
 
 data GetRequestHandler
-  = GetJustParams (ParamRequest -> Response')
-  | GetParamsAndPathVars (ParamPathVarRequest -> Response')
+  = GetJustParams (ParamRequest -> GetResponse)
+  | GetParamsAndPathVars (ParamPathVarRequest -> GetResponse)
   | GetStatic Response
 
 data PostRequestHandler
@@ -54,11 +54,11 @@ matchRoute' (handler:handlers) (EmptyPostRequest path) = matchEmptyPostRoute' ha
 matchGetRoute' :: Route -> [Route] -> Path -> [Param] -> IO Response
 matchGetRoute' (GET path (GetJustParams fn)) handlers thePath params =
   if path == thePath
-    then response'ToImpure $ fn params
+    then getResponseToImpureResponse $ fn params
     else matchRoute' handlers $ GetRequest thePath params
 matchGetRoute' (GET pathTemplate (GetParamsAndPathVars fn)) handlers thePath params =
   case pathVars pathTemplate thePath of
-    (Just thePathVars) -> response'ToImpure $ fn (params, thePathVars)
+    (Just thePathVars) -> getResponseToImpureResponse $ fn (params, thePathVars)
     Nothing            -> matchRoute' handlers $ GetRequest thePath params
 matchGetRoute' (GET path (GetStatic response)) remaining thePath params =
   if path == thePath
@@ -91,8 +91,8 @@ matchEmptyPostRoute' (POST pathTemplate (PostBodyAndPathVars fn)) handlers thePa
 matchEmptyPostRoute' (POST path (PostBody fn)) handlers thePath = matchRoute' handlers $ EmptyPostRequest thePath
 matchEmptyPostRoute' _ handlers path = matchRoute' handlers $ EmptyPostRequest path
 
-response'ToImpure :: Response' -> IO Response
-response'ToImpure response =
+getResponseToImpureResponse :: GetResponse -> IO Response
+getResponseToImpureResponse response =
   case response of
     (Impure response') -> response'
     (Pure response'')  -> return response''

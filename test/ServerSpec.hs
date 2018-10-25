@@ -235,6 +235,6 @@ findParam ((aKey, aValue):remaining) theKey =
     True  -> Just aValue
     False -> findParam remaining theKey
 
-notFoundOr :: Maybe Response' -> Response'
+notFoundOr :: Maybe GetResponse -> GetResponse
 notFoundOr (Just response) = response
 notFoundOr Nothing = Pure R.NOT_FOUND

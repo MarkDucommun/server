@@ -2,7 +2,7 @@ module Server
   ( startServer
   , startSimpleServer
   , PortNumber
-  , Response'(Pure, Impure)
+  , GetResponse(Pure, Impure)
   , Route (GET, POST)
   , GetRequestHandler (GetStatic, GetJustParams, GetParamsAndPathVars)
   , PostRequestHandler (PostJustPathVars, PostBody, PostBodyAndPathVars)
