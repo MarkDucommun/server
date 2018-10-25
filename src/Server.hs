@@ -3,11 +3,9 @@ module Server
   , startSimpleServer
   , PortNumber
   , Response'(Pure, Impure)
-  , Route
-  , Route' (GET', POST')
+  , Route (GET, POST)
   , GetRequestHandler (GetStatic, GetJustParams, GetParamsAndPathVars)
   , PostRequestHandler (PostJustPathVars, PostBody, PostBodyAndPathVars)
-  , RequestHandler (GET, POST)
   , Request (GetRequest, PostRequest, EmptyPostRequest)
   ) where
 
@@ -20,7 +18,7 @@ import           RouteMatching
 import           RequestBuilder
 import           ResponseWriter
 
-startServer :: (Chan Bool) -> PortID -> [Route'] -> IO ()
+startServer :: (Chan Bool) -> PortID -> [Route] -> IO ()
 startServer channel port routes =  startSimpleServer channel port $ routeRequest routes
   where routeRequest routes request = matchRoute' routes request
 
