@@ -132,6 +132,14 @@ spec = do
             )]
           "/a?b=1" `shouldRespond` (C.OK $ C.Text "1")
 
+        it "can handle path vars" $ do
+          startWith $ [(GET "/a/{b}" $ GetJustPathVars $ \pathVars ->
+            case findParam pathVars "b" of
+              (Just pathVar) -> Pure $ R.OK $ R.Text pathVar
+              _ -> Pure $ R.NOT_FOUND
+            )]
+          "/a/1" `shouldRespond` (C.OK $ C.Text "1")
+
         it "can handle params and path vars" $ do
           startWith $ [(GET "/a/{c}" $ GetParamsAndPathVars $ \(params, pathVars) ->
             case findParam params "b" of

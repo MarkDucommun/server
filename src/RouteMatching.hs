@@ -5,7 +5,7 @@ module RouteMatching
   , Route (GET, POST)
   , Request(GetRequest, PostRequest, EmptyPostRequest)
   , GetResponse(Pure, Impure)
-  , GetRequestHandler (GetStatic, GetJustParams, GetParamsAndPathVars)
+  , GetRequestHandler (GetStatic, GetJustParams, GetParamsAndPathVars, GetJustPathVars)
   , PostRequestHandler(PostJustPathVars, PostBody, PostBodyAndPathVars)
   ) where
 
@@ -24,6 +24,10 @@ matchGetRoute (GET path (GetJustParams fn)) handlers thePath params =
   if path == thePath
     then getResponseToImpureResponse $ fn params
     else matchRoute handlers $ GetRequest thePath params
+matchGetRoute (GET pathTemplate (GetJustPathVars fn)) handlers thePath params =
+  case pathVars pathTemplate thePath of
+    (Just thePathVars) -> getResponseToImpureResponse $ fn thePathVars
+    Nothing            -> matchRoute handlers $ GetRequest thePath params
 matchGetRoute (GET pathTemplate (GetParamsAndPathVars fn)) handlers thePath params =
   case pathVars pathTemplate thePath of
     (Just thePathVars) -> getResponseToImpureResponse $ fn (params, thePathVars)

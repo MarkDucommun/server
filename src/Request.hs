@@ -8,7 +8,7 @@ module Request
   , BodyPathVarRequest
   , PathVarRequest
   , Route (GET, POST)
-  , GetRequestHandler (GetJustParams, GetParamsAndPathVars, GetStatic)
+  , GetRequestHandler (GetJustParams, GetParamsAndPathVars, GetJustPathVars, GetStatic)
   , PostRequestHandler(PostJustPathVars, PostBody, PostBodyAndPathVars)
 ) where
 
@@ -42,6 +42,7 @@ data Route
 data GetRequestHandler
   = GetJustParams (ParamRequest -> GetResponse)
   | GetParamsAndPathVars (ParamPathVarRequest -> GetResponse)
+  | GetJustPathVars (PathVarRequest -> GetResponse)
   | GetStatic Response
 
 data PostRequestHandler

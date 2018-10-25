@@ -6,7 +6,7 @@ module Server
   , PortNumber
   , GetResponse(Pure, Impure)
   , Route(GET, POST)
-  , GetRequestHandler(GetStatic, GetJustParams, GetParamsAndPathVars)
+  , GetRequestHandler(GetStatic, GetJustParams, GetParamsAndPathVars, GetJustPathVars)
   , PostRequestHandler(PostJustPathVars, PostBody, PostBodyAndPathVars)
   , Request(GetRequest, PostRequest, EmptyPostRequest)
   ) where
