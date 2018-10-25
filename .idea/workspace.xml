@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f3bdd84b-dade-4a53-930d-21745643a705" name="Default Changelist" comment="A bit more refactoring to remove more than one level of conditional nesting per function">
-      <change beforePath="$PROJECT_DIR$/app/Main.hs" beforeDir="false" afterPath="$PROJECT_DIR$/app/Main.hs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Request.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/PathVar.hs" beforeDir="false" afterPath="$PROJECT_DIR$/src/PathVar.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/RouteMatching.hs" beforeDir="false" afterPath="$PROJECT_DIR$/src/RouteMatching.hs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Server.hs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Server.hs" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.stack-work/" />
@@ -30,7 +33,7 @@
           <entry key="LICENSE" value="1" />
           <entry key="csv" value="1" />
           <entry key="gitignore" value="1" />
-          <entry key="hs" value="83" />
+          <entry key="hs" value="87" />
           <entry key="iml" value="1" />
           <entry key="md" value="1" />
           <entry key="txt" value="1" />
@@ -41,7 +44,7 @@
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="CSV" value="1" />
-          <entry key="Haskell file" value="83" />
+          <entry key="Haskell file" value="87" />
           <entry key="IDEA_MODULE" value="1" />
           <entry key="Markdown" value="1" />
           <entry key="PLAIN_TEXT" value="3" />
@@ -52,7 +55,7 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="LICENSE" value="30" />
-          <entry key="hs" value="52893" />
+          <entry key="hs" value="53344" />
           <entry key="md" value="1327" />
           <entry key="txt" value="180" />
           <entry key="yaml" value="201" />
@@ -60,7 +63,7 @@
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Haskell file" value="52893" />
+          <entry key="Haskell file" value="53344" />
           <entry key="Markdown" value="1327" />
           <entry key="PLAIN_TEXT" value="210" />
           <entry key="YAML" value="201" />
@@ -83,20 +86,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Client.hs">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/PathVar.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="90">
-              <caret line="6" column="8" lean-forward="true" selection-start-line="6" selection-start-column="8" selection-end-line="6" selection-end-column="8" />
+            <state relative-caret-position="345">
+              <caret line="23" column="27" selection-start-line="23" selection-start-column="27" selection-end-line="23" selection-end-column="27" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/Main.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="705">
-              <caret line="47" column="33" lean-forward="true" selection-start-line="47" selection-start-column="33" selection-end-line="47" selection-end-column="33" />
+            <state relative-caret-position="210">
+              <caret line="14" column="21" lean-forward="true" selection-start-line="14" selection-start-column="21" selection-end-line="14" selection-end-column="21" />
             </state>
           </provider>
         </entry>
@@ -104,8 +107,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Server.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="75">
-              <caret line="5" selection-start-line="5" selection-end-line="5" />
+            <state relative-caret-position="246">
+              <caret line="21" lean-forward="true" selection-start-line="21" selection-end-line="21" />
             </state>
           </provider>
         </entry>
@@ -113,8 +116,17 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/RouteMatching.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="870">
-              <caret line="58" column="84" lean-forward="true" selection-start-line="58" selection-start-column="84" selection-end-line="58" selection-end-column="84" />
+            <state relative-caret-position="405">
+              <caret line="27" column="39" lean-forward="true" selection-start-line="27" selection-start-column="39" selection-end-line="27" selection-end-column="39" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/Request.hs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="300">
+              <caret line="20" column="31" selection-start-line="20" selection-start-column="31" selection-end-line="20" selection-end-column="31" />
             </state>
           </provider>
         </entry>
@@ -131,7 +143,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/RequestBuilder.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="690">
+            <state relative-caret-position="126">
               <caret line="46" lean-forward="true" selection-start-line="46" selection-end-line="46" />
             </state>
           </provider>
@@ -204,7 +216,6 @@
         <option value="$PROJECT_DIR$/test/ServerResponseSpec.hs" />
         <option value="$PROJECT_DIR$/test/PathVarSpec.hs" />
         <option value="$PROJECT_DIR$/src/TransformResponse.hs" />
-        <option value="$PROJECT_DIR$/src/PathVar.hs" />
         <option value="$PROJECT_DIR$/test-assets/test.txt" />
         <option value="$PROJECT_DIR$/LICENSE" />
         <option value="$PROJECT_DIR$/README.md" />
@@ -219,9 +230,12 @@
         <option value="$PROJECT_DIR$/src/SplitPathAndParams.hs" />
         <option value="$PROJECT_DIR$/test/ServerSpec.hs" />
         <option value="$PROJECT_DIR$/src/Responses.hs" />
-        <option value="$PROJECT_DIR$/src/RouteMatching.hs" />
-        <option value="$PROJECT_DIR$/src/Server.hs" />
         <option value="$PROJECT_DIR$/app/Main.hs" />
+        <option value="$PROJECT_DIR$/src/Server.hs" />
+        <option value="$PROJECT_DIR$/src/PathVar.hs" />
+        <option value="$PROJECT_DIR$/src/GetRequestRouting.hs" />
+        <option value="$PROJECT_DIR$/src/RouteMatching.hs" />
+        <option value="$PROJECT_DIR$/src/Request.hs" />
       </list>
     </option>
   </component>
@@ -397,7 +411,7 @@
       <workItem from="1540055988880" duration="92000" />
       <workItem from="1540056346734" duration="129000" />
       <workItem from="1540082522367" duration="7401000" />
-      <workItem from="1540167204957" duration="32591000" />
+      <workItem from="1540167204957" duration="33354000" />
     </task>
     <task id="LOCAL-00001" summary="Refactoring path var extraction">
       <created>1539858830418</created>
@@ -424,13 +438,12 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="196156000" />
+    <option name="totallyTimeSpent" value="196919000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1680" height="1050" extended-state="0" />
-    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.22649573" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.22649573" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -602,20 +615,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ClientRequest.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="585">
-          <caret line="39" column="27" lean-forward="true" selection-start-line="39" selection-start-column="27" selection-end-line="39" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/PathVar.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="19" column="35" lean-forward="true" selection-start-line="19" selection-start-column="35" selection-end-line="19" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/TransformResponse.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="30">
@@ -644,6 +643,13 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/ClientRequest.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="585">
+          <caret line="39" column="27" lean-forward="true" selection-start-line="39" selection-start-column="27" selection-end-line="39" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/Client.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
@@ -651,24 +657,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/ServerSpec.hs">
+    <entry file="file://$PROJECT_DIR$/src/GetRequestRouting.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="831">
-          <caret line="237" column="46" lean-forward="true" selection-start-line="237" selection-start-column="46" selection-end-line="237" selection-end-column="46" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/SplitPathAndParams.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="9" column="27" lean-forward="true" selection-start-line="9" selection-start-column="27" selection-end-line="9" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/RequestBuilder.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="690">
-          <caret line="46" lean-forward="true" selection-start-line="46" selection-end-line="46" />
+        <state relative-caret-position="45">
+          <caret line="3" lean-forward="true" selection-start-line="3" selection-end-line="5" selection-end-column="16" />
         </state>
       </provider>
     </entry>
@@ -679,24 +671,59 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/RequestBuilder.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="126">
+          <caret line="46" lean-forward="true" selection-start-line="46" selection-end-line="46" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/SplitPathAndParams.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="9" column="27" lean-forward="true" selection-start-line="9" selection-start-column="27" selection-end-line="9" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ServerSpec.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="831">
+          <caret line="237" column="46" lean-forward="true" selection-start-line="237" selection-start-column="46" selection-end-line="237" selection-end-column="46" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/RouteMatching.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="870">
-          <caret line="58" column="84" lean-forward="true" selection-start-line="58" selection-start-column="84" selection-end-line="58" selection-end-column="84" />
+        <state relative-caret-position="405">
+          <caret line="27" column="39" lean-forward="true" selection-start-line="27" selection-start-column="39" selection-end-line="27" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Request.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="20" column="31" selection-start-line="20" selection-start-column="31" selection-end-line="20" selection-end-column="31" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Server.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="5" selection-start-line="5" selection-end-line="5" />
+        <state relative-caret-position="246">
+          <caret line="21" lean-forward="true" selection-start-line="21" selection-end-line="21" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/Main.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="705">
-          <caret line="47" column="33" lean-forward="true" selection-start-line="47" selection-start-column="33" selection-end-line="47" selection-end-column="33" />
+        <state relative-caret-position="210">
+          <caret line="14" column="21" lean-forward="true" selection-start-line="14" selection-start-column="21" selection-end-line="14" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/PathVar.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="345">
+          <caret line="23" column="27" selection-start-line="23" selection-start-column="27" selection-end-line="23" selection-end-column="27" />
         </state>
       </provider>
     </entry>

@@ -5,24 +5,25 @@ module Server
   , Param
   , PortNumber
   , GetResponse(Pure, Impure)
-  , Route (GET, POST)
-  , GetRequestHandler (GetStatic, GetJustParams, GetParamsAndPathVars)
-  , PostRequestHandler (PostJustPathVars, PostBody, PostBodyAndPathVars)
-  , Request (GetRequest, PostRequest, EmptyPostRequest)
+  , Route(GET, POST)
+  , GetRequestHandler(GetStatic, GetJustParams, GetParamsAndPathVars)
+  , PostRequestHandler(PostJustPathVars, PostBody, PostBodyAndPathVars)
+  , Request(GetRequest, PostRequest, EmptyPostRequest)
   ) where
 
 import           Control.Concurrent.Chan
 import           Network
+import           RequestBuilder
 import           Responses
+import           ResponseWriter
+import           RouteMatching
 import           System.IO
 import           Utilities
-import           RouteMatching
-import           RequestBuilder
-import           ResponseWriter
 
 startServer :: (Chan Bool) -> PortID -> [Route] -> IO ()
-startServer channel port routes =  startSimpleServer channel port $ routeRequest routes
-  where routeRequest routes request = matchRoute routes request
+startServer channel port routes = startSimpleServer channel port $ routeRequest routes
+  where
+    routeRequest routes request = matchRoute routes request
 
 startSimpleServer :: (Chan Bool) -> PortID -> RequestHandler -> IO ()
 startSimpleServer channel port requestHandler =
@@ -36,7 +37,7 @@ loop socket channel requestHandler = do
   maybeRequest <- getRequest handle
   case maybeRequest of
     (Just request) -> sendResponse handle $ requestHandler request
-    Nothing -> sendResponse handle $ return malformedRequestResponse
+    Nothing        -> sendResponse handle $ return malformedRequestResponse
   shouldServerContinue socket channel requestHandler
   where
     acceptConnection :: Socket -> IO Handle
