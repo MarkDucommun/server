@@ -1,6 +1,8 @@
 module Server
   ( startServer
   , startSimpleServer
+  , Path
+  , Param
   , PortNumber
   , GetResponse(Pure, Impure)
   , Route (GET, POST)

@@ -17,7 +17,7 @@ main = do
     , ( GET "/myComputer" $ GetJustParams $ getFileContents')
     ]
 
-getTheInternet' :: [(String, String)] -> GetResponse
+getTheInternet' :: [Param] -> GetResponse
 getTheInternet' params = Impure $
   case getUrlAndPath params of
     (Just (url, path)) -> getTheInternet url path
@@ -31,7 +31,7 @@ getTheInternet url path = do
     (C.OK C.Empty)       -> return $ R.OK $ R.Text $ "OK"
     _                    -> return $ R.BAD_REQUEST $ R.Text "BAD"
 
-getFileContents' :: [(String, String)] -> GetResponse
+getFileContents' :: [Param] -> GetResponse
 getFileContents' params = Impure $
   case findParam params "path" of
     (Just path) -> getFileContents path
@@ -42,13 +42,13 @@ getFileContents path = do
   contents <- readFile path -- TODO handle file not found with a try?
   return $ R.OK $ R.Text $ "OK:\n\n" ++ contents
 
-getUrlAndPath :: [(String, String)] -> Maybe (String, String)
+getUrlAndPath :: [Param] -> Maybe (String, String)
 getUrlAndPath params = do
   url <- findParam params "url"
   path <- findParam params "path"
   return (url, path)
 
-findParam :: [(String, String)] -> String -> Maybe String
+findParam :: [Param] -> String -> Maybe String
 findParam [] _ = Nothing
 findParam ((aKey, aValue):remaining) theKey =
   case aKey == theKey of
