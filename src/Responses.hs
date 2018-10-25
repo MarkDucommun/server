@@ -14,7 +14,7 @@ data Response
 
 data Body = Empty | Text String deriving (Show, Eq)
 
-data GetResponse -- TODO rename GET response
+data GetResponse
   = Pure Response
   | Impure (IO Response)
 

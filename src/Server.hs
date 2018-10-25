@@ -22,13 +22,13 @@ startServer :: (Chan Bool) -> PortID -> [Route] -> IO ()
 startServer channel port routes =  startSimpleServer channel port $ routeRequest routes
   where routeRequest routes request = matchRoute' routes request
 
-startSimpleServer :: (Chan Bool) -> PortID -> RequestHandler'' -> IO ()
+startSimpleServer :: (Chan Bool) -> PortID -> RequestHandler -> IO ()
 startSimpleServer channel port requestHandler =
   withSocketsDo $ do
     socket <- listenOn port -- TODO probably log an appropriate message and then shut down
     loop socket channel requestHandler
 
-loop :: Socket -> (Chan Bool) -> RequestHandler'' -> IO ()
+loop :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
 loop socket channel requestHandler = do
   handle <- acceptConnection socket
   maybeRequest <- getRequest handle
@@ -42,7 +42,7 @@ loop socket channel requestHandler = do
       (handle, _, _) <- accept socket
       return handle
 
-shouldServerContinue :: Socket -> (Chan Bool) -> RequestHandler'' -> IO ()
+shouldServerContinue :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
 shouldServerContinue socket channel handler = do
   shouldContinue <- readChan channel -- TODO handle exception, not sure what is appropriate
   if shouldContinue
@@ -56,4 +56,4 @@ shouldServerContinue socket channel handler = do
 malformedRequestResponse :: Response
 malformedRequestResponse = BAD_REQUEST $ Text "Malformed request path or parameters"
 
-type RequestHandler'' = (Request -> IO Response)
+type RequestHandler = (Request -> IO Response)
