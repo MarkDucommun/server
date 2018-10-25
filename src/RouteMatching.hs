@@ -47,17 +47,19 @@ getResponseToImpureResponse response =
 
 matchPostRoute' :: Route -> [Route] -> Path -> Maybe String -> IO Response
 matchPostRoute' (POST pathTemplate handlerFn) handlers thePath body =
-  case pathVars pathTemplate thePath of
-    (Just thePathVars) -> invokeHandler handlerFn thePathVars body
-    Nothing -> matchRoute handlers $ PostRequest thePath body
+  matchOrContinue PostRequest pathTemplate handlerFn handlers thePath body
 matchPostRoute' _ handlers thePath body = matchRoute handlers $ PostRequest thePath body
 
 matchPutRoute' :: Route -> [Route] -> Path -> Maybe String -> IO Response
 matchPutRoute' (PUT pathTemplate handlerFn) handlers thePath body =
+  matchOrContinue PutRequest pathTemplate handlerFn handlers thePath body
+matchPutRoute' _ handlers thePath body = matchRoute handlers $ PutRequest thePath body
+
+matchOrContinue :: (Path -> Maybe String -> Request) -> Path -> RequestWithBodyHandler -> [Route] -> Path -> Maybe String -> IO Response
+matchOrContinue requestType pathTemplate handlerFn handlers thePath body =
   case pathVars pathTemplate thePath of
     (Just thePathVars) -> invokeHandler handlerFn thePathVars body
-    Nothing -> matchRoute handlers $ PutRequest thePath body
-matchPutRoute' _ handlers thePath body = matchRoute handlers $ PutRequest thePath body
+    Nothing -> matchRoute handlers $ requestType thePath body
 
 invokeHandler :: RequestWithBodyHandler -> [PathVar] -> Maybe String -> IO Response
 invokeHandler (JustPathVars fn) pathVars maybeBody = fn pathVars
