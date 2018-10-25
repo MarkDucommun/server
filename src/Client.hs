@@ -4,7 +4,6 @@ module Client
   , put
   , Response (OK, CREATED, BAD_REQUEST, NOT_FOUND, UNAUTHORIZED)
   , Body (Empty, Text)
-  , PostBody (Empty', Text')
   , Host
   , Path
   ) where
@@ -20,7 +19,7 @@ get host port path = withSocketsDo $ do
   response <- handleResponse handle
   return $ response
 
-post :: Host -> PortID -> Path -> PostBody -> IO Response
+post :: Host -> PortID -> Path -> Body -> IO Response
 post host port path body = withSocketsDo $ do
    handle <- connectTo host port
    makePostRequest handle host port path body

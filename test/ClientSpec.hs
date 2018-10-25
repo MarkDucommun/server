@@ -39,7 +39,7 @@ spec = do
         it "does not send a body" $ do
           forkIO $ do
             threadDelay 100
-            post "localhost" port "/hello" Empty'
+            post "localhost" port "/hello" Empty
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $
@@ -49,7 +49,7 @@ spec = do
         it "sends the body along with a content-length header" $ do
           forkIO $ do
             threadDelay 100
-            post "localhost" port "/hello" $ Text' "HELLO"
+            post "localhost" port "/hello" $ Text "HELLO"
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $

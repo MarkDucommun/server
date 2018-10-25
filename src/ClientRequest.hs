@@ -4,23 +4,21 @@ module ClientRequest
   , makePutRequest
   , Host
   , Path
-  , PostBody(Empty', Text')
+  , Body(Empty, Text)
   ) where
 
+import           Body
 import           Network
 import           System.IO
 import           Utilities
-import           Body
 
 type Host = String
 type Path = String
 
-data PostBody = Empty' | Text' String deriving (Show, Eq)
-
 makeRequest :: Handle -> Host -> PortID -> Path -> IO ()
 makeRequest handle host port path = hPutRequest handle $ constructRequest host port path
 
-makePostRequest :: Handle -> Host -> PortID -> Path -> PostBody -> IO ()
+makePostRequest :: Handle -> Host -> PortID -> Path -> Body -> IO ()
 makePostRequest handle host port path body = hPutRequest handle $ constructPostRequest host port path body
 
 makePutRequest :: Handle -> Host -> PortID -> Path -> Body -> IO ()
@@ -33,16 +31,20 @@ hPutRequest handle (line:lines') = do
   hPutRequest handle lines'
 
 constructRequest :: String -> PortID -> String -> [String]
-constructRequest host port path = [pathHeader path, hostHeader host port, cacheControlHeader, emptyLine]
+constructRequest host port path =
+  [ pathHeader path
+  , hostHeader host port
+  , cacheControlHeader
+  , emptyLine]
 
-constructPostRequest :: String -> PortID -> String -> PostBody -> [String]
-constructPostRequest host port path Empty' =
+constructPostRequest :: String -> PortID -> String -> Body -> [String]
+constructPostRequest host port path Empty =
   [ pathHeader' "POST" path
   , hostHeader host port
   , cacheControlHeader
   , emptyLine
   , emptyLine]
-constructPostRequest host port path (Text' body) =
+constructPostRequest host port path (Text body) =
   [ pathHeader' "POST" path
   , hostHeader host port
   , cacheControlHeader

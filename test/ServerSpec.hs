@@ -160,7 +160,7 @@ spec = do
 
         it "can respond to a post with a body" $ do
           startWith $ [(POST "/a" $ PostBody $ \body -> return $ R.OK $ R.Text body)]
-          response <- post "localhost" port "/a" $ Text' "2"
+          response <- post "localhost" port "/a" $ C.Text "2"
           response `shouldBe` (C.OK $ C.Text "2\r")
 
         it "can respond to a post with a body and path vars" $ do
@@ -169,7 +169,7 @@ spec = do
                 (Just var) -> return $ R.OK $ R.Text $ body ++ var
                 _ -> return $ R.NOT_FOUND
             )]
-          response <- post "localhost" port "/a/2" $ Text' "1"
+          response <- post "localhost" port "/a/2" $ C.Text "1"
           response `shouldBe` (C.OK $ C.Text "1\r2")
 
     describe "formatting response output" $ do
@@ -215,7 +215,7 @@ shouldRespond path expected = do
 
 postShouldRespond :: String -> C.Response -> IO ()
 postShouldRespond path expected = do
-  response <- post "localhost" port path Empty'
+  response <- post "localhost" port path C.Empty
   response `shouldBe` expected
 
 sendChars :: String -> IO Handle
