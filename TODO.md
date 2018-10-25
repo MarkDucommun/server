@@ -1,7 +1,4 @@
 # TODOs
-* [ ] Clean up request builder
-    * [x] `getRequest`
-    * [ ] `createRequestBuilder`
 * [ ] Write tests that send client requests with Content-Length    
 * [ ] Audit all `<-` in IO blocks
     * [ ] `main.hs:41`
@@ -41,4 +38,9 @@
     * [ ] `ResponseWriter.hs:12`
 * [ ] Extract `getContentLength`    
 * [ ] Extract `getBodyByLength`    
-* [ ] Extract `getBodyByEmptyLine`    
+* [ ] Extract `getBodyByEmptyLine` 
+
+## Completed   
+* [x] Clean up request builder
+    * [x] `getRequest`
+    * [x] `createRequestBuilder`

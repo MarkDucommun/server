@@ -42,16 +42,19 @@ createRequestBuilder headers = do
   (path, params) <- splitPathAndParams rawPath
   case method of
     "GET" -> Just $ GetBuilder path params
-    "POST" -> Just $ case getContentLength headers of
-      (Just contentLength) -> PostBuilder path params contentLength
-      Nothing -> NewLinePostBuilder path params
-    "PUT" -> Just $ case getContentLength headers of
-      (Just contentLength) -> PutBuilder path params contentLength
-      Nothing -> NewLinePutBuilder path params
-    "DELETE" -> Just $ case getContentLength headers of
-      (Just contentLength) -> DeleteBuilder path params contentLength
-      Nothing -> NewLineDeleteBuilder path params
+    "POST" -> builderForRequestWithBody PostBuilder NewLinePostBuilder headers path params
+    "PUT" -> builderForRequestWithBody PutBuilder NewLinePutBuilder headers path params
+    "DELETE" -> builderForRequestWithBody DeleteBuilder NewLineDeleteBuilder headers path params
     _ -> Nothing
+
+builderForRequestWithBody
+  :: (Path -> [Param] -> Int -> RequestBuilder)
+  -> (Path -> [Param] -> RequestBuilder)
+  -> [String] -> Path -> [Param] -> Maybe RequestBuilder
+builderForRequestWithBody builder newLineBuilder headers path params =
+  Just $ case getContentLength headers of
+    (Just contentLength) -> builder path params contentLength
+    Nothing -> newLineBuilder path params
 
 getRawPath :: [String] -> Maybe String
 getRawPath [] = Nothing
