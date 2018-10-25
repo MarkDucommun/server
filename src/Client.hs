@@ -1,6 +1,7 @@
 module Client
   ( get
   , post
+  , put
   , Response (OK, CREATED, BAD_REQUEST, NOT_FOUND, UNAUTHORIZED)
   , Body (Empty, Text)
   , PostBody (Empty', Text')
@@ -25,3 +26,10 @@ post host port path body = withSocketsDo $ do
    makePostRequest handle host port path body
    response <- handleResponse handle
    return $ response
+
+put :: Host -> PortID -> Path -> Body -> IO Response
+put host port path body = withSocketsDo $ do
+  handle <- connectTo host port
+  makePutRequest handle host port path body
+  response <- handleResponse handle
+  return $ response

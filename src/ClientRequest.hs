@@ -1,6 +1,7 @@
 module ClientRequest
   ( makeRequest
   , makePostRequest
+  , makePutRequest
   , Host
   , Path
   , PostBody(Empty', Text')
@@ -9,17 +10,21 @@ module ClientRequest
 import           Network
 import           System.IO
 import           Utilities
+import           Body
 
 type Host = String
 type Path = String
 
-data PostBody = Empty' | Text' String
+data PostBody = Empty' | Text' String deriving (Show, Eq)
 
 makeRequest :: Handle -> Host -> PortID -> Path -> IO ()
 makeRequest handle host port path = hPutRequest handle $ constructRequest host port path
 
 makePostRequest :: Handle -> Host -> PortID -> Path -> PostBody -> IO ()
 makePostRequest handle host port path body = hPutRequest handle $ constructPostRequest host port path body
+
+makePutRequest :: Handle -> Host -> PortID -> Path -> Body -> IO ()
+makePutRequest handle host port path body = hPutRequest handle $ constructPutRequest host port path body
 
 hPutRequest :: Handle -> [String] -> IO ()
 hPutRequest handle [] = hFlush handle
@@ -39,6 +44,22 @@ constructPostRequest host port path Empty' =
   , emptyLine]
 constructPostRequest host port path (Text' body) =
   [ pathHeader' "POST" path
+  , hostHeader host port
+  , cacheControlHeader
+  , contentLengthHeader body
+  , emptyLine
+  , body ++ emptyLine
+  , emptyLine]
+
+constructPutRequest :: String -> PortID -> String -> Body -> [String]
+constructPutRequest host port path Empty =
+  [ pathHeader' "PUT" path
+  , hostHeader host port
+  , cacheControlHeader
+  , emptyLine
+  , emptyLine]
+constructPutRequest host port path (Text body) =
+  [ pathHeader' "PUT" path
   , hostHeader host port
   , cacheControlHeader
   , contentLengthHeader body

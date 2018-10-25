@@ -6,6 +6,7 @@ module ClientResponse
 
 import           System.IO
 import           Utilities
+import           Body
 
 data Response
   = OK Body
@@ -14,8 +15,6 @@ data Response
   | NOT_FOUND
   | UNAUTHORIZED
   deriving (Show, Eq)
-
-data Body = Empty | Text String deriving (Show, Eq)
 
 handleResponse :: Handle -> IO Response
 handleResponse handle = do
