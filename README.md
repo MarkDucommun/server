@@ -31,22 +31,24 @@ I hope you enjoy reading and modifying this as much as I have enjoyed creating i
 1. Run ```stack test```
 
 --- 
-### Backlog
+### Complete
 1. HTTP Client
-    * ~~GET~~
-    * ~~POST~~
-    * ~~PUT~~
-    * ~~DELETE~~
+    * [x] GET
+    * [x] POST
+    * [x] PUT
+    * [x] DELETE
 1. HTTP Server
-    * ~~GET~~
-    * ~~POST~~
-    * ~~PUT~~
-    * ~~DELETE~~
+    * [x] GET
+    * [x] POST
+    * [x] PUT
+    * [x] DELETE
+
+### Backlog
 1. Headers
-    * Client request
-    * Server request
-    * Client response
-    * Server response
+    * [ ] Client request
+    * [ ] Server request
+    * [ ] Client response
+    * [ ] Server response
 
 ### Icebox
 1. Functional dependency injection

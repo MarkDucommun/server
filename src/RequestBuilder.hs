@@ -8,45 +8,34 @@ import           Utilities
 import           RouteMatching
 import           SplitPathAndParams
 
-getRequest :: Handle -> IO (Maybe Request) -- TODO cleanup
+getRequest :: Handle -> IO (Maybe Request)
 getRequest handle = do
   headers <- readHeaders handle
   case createRequestBuilder headers of
-    (Just (GetBuilder path params)) -> return $ Just $ GetRequest path params
-    (Just (PostBuilder path params contentLength)) -> do
-      maybeBody <- getBodyByEmptyLine handle
-      case maybeBody of
-        (Just body) -> return $ Just $ PostRequest path $ Just body
-        Nothing -> return $ Just $ PostRequest path Nothing
-    (Just (NewLinePostBuilder path params)) -> do
-      maybeBody <- getBodyByEmptyLine handle
-      case maybeBody of
-        (Just body) -> return $ Just $ PostRequest path $ Just body
-        Nothing -> return $ Just $ PostRequest path Nothing
-    (Just (PutBuilder path params contentLength)) -> do
-      maybeBody <- getBodyByEmptyLine handle
-      case maybeBody of
-        (Just body) -> return $ Just $ PutRequest path $ Just body
-        Nothing -> return $ Just $ PutRequest path Nothing
-    (Just (NewLinePutBuilder path params)) -> do
-      maybeBody <- getBodyByEmptyLine handle
-      case maybeBody of
-        (Just body) -> return $ Just $ PutRequest path $ Just body
-        Nothing -> return $ Just $ PutRequest path Nothing
-    (Just (DeleteBuilder path params contentLength)) -> do
-      maybeBody <- getBodyByEmptyLine handle
-      case maybeBody of
-        (Just body) -> return $ Just $ DeleteRequest path $ Just body
-        Nothing -> return $ Just $ DeleteRequest path Nothing
-    (Just (NewLineDeleteBuilder path params)) -> do
-      maybeBody <- getBodyByEmptyLine handle
-      case maybeBody of
-        (Just body) -> return $ Just $ DeleteRequest path $ Just body
-        Nothing -> return $ Just $ DeleteRequest path Nothing
-    Nothing -> do
-      return Nothing
+    (Just requestBuilder) -> buildRequest handle requestBuilder
+    Nothing -> return Nothing
 
-createRequestBuilder :: [String] -> Maybe RequestBuilder -- TODO cleanup
+buildRequest :: Handle -> RequestBuilder -> IO (Maybe Request)
+buildRequest handle (GetBuilder path params) = return $ Just $ GetRequest path params
+buildRequest handle (PostBuilder path params contentLength) =
+  buildRequestWithBodyByEmptyLine handle PostRequest path
+buildRequest handle (NewLinePostBuilder path params) =
+  buildRequestWithBodyByEmptyLine handle PostRequest path
+buildRequest handle (PutBuilder path params contentLength) =
+  buildRequestWithBodyByEmptyLine handle PutRequest path
+buildRequest handle (NewLinePutBuilder path params) =
+  buildRequestWithBodyByEmptyLine handle PutRequest path
+buildRequest handle (DeleteBuilder path params contentLength) =
+  buildRequestWithBodyByEmptyLine handle DeleteRequest path
+buildRequest handle (NewLineDeleteBuilder path params) =
+  buildRequestWithBodyByEmptyLine handle DeleteRequest path
+
+buildRequestWithBodyByEmptyLine :: Handle -> (Path -> Maybe String -> Request) -> Path -> IO (Maybe Request)
+buildRequestWithBodyByEmptyLine handle requestType path = do
+  maybeBody <- getBodyByEmptyLine handle
+  return $ Just $ requestType path maybeBody
+
+createRequestBuilder :: [String] -> Maybe RequestBuilder
 createRequestBuilder headers = do
   method <- getMethod headers
   rawPath <- getRawPath headers
@@ -107,7 +96,7 @@ getMethod _ = Nothing
 
 readHeaders :: Handle -> IO [String]
 readHeaders handle = do
-  line <- hGetLine handle -- TODO handle exception
+  line <- hGetLine handle
   case line of
     "\r" -> return []
     _ -> handle `addToRemainingHeaders` line

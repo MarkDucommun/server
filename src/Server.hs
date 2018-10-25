@@ -28,7 +28,7 @@ startServer channel port routes = startSimpleServer channel port $ routeRequest 
 startSimpleServer :: (Chan Bool) -> PortID -> RequestHandler -> IO ()
 startSimpleServer channel port requestHandler =
   withSocketsDo $ do
-    socket <- listenOn port -- TODO probably log an appropriate message and then shut down
+    socket <- listenOn port
     loop socket channel requestHandler
 
 loop :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
@@ -47,7 +47,7 @@ loop socket channel requestHandler = do
 
 shouldServerContinue :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
 shouldServerContinue socket channel handler = do
-  shouldContinue <- readChan channel -- TODO handle exception, not sure what is appropriate
+  shouldContinue <- readChan channel
   if shouldContinue
     then perpetuateServer socket channel handler
     else sClose socket
