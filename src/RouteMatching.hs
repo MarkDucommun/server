@@ -27,18 +27,6 @@ matchGetRoute (GET path handlerFn) handlers thePath params =
     Nothing -> matchRoute handlers $ GetRequest thePath params
 matchGetRoute _ handlers path params = matchRoute handlers $ GetRequest path params
 
-invokeGetHandler :: GetRequestHandler -> [PathVar] -> [Param] -> GetResponse
-invokeGetHandler (GetJustParams fn) pathVars params = fn params
-invokeGetHandler (GetJustPathVars fn) pathVars params = fn pathVars
-invokeGetHandler (GetParamsAndPathVars fn) pathVars params = fn (params, pathVars)
-invokeGetHandler (GetStatic response) _ _ = Impure $ return $ response
-
-getResponseToImpureResponse :: GetResponse -> IO Response
-getResponseToImpureResponse response =
-  case response of
-    (Impure response') -> response'
-    (Pure response'')  -> return response''
-
 matchPostRoute :: Route -> [Route] -> Path -> Maybe String -> IO Response
 matchPostRoute (POST pathTemplate handlerFn) handlers thePath body =
   matchOrContinue PostRequest pathTemplate handlerFn handlers thePath body
@@ -49,11 +37,17 @@ matchPutRoute (PUT pathTemplate handlerFn) handlers thePath body =
   matchOrContinue PutRequest pathTemplate handlerFn handlers thePath body
 matchPutRoute _ handlers thePath body = matchRoute handlers $ PutRequest thePath body
 
-matchOrContinue :: (Path -> Maybe String -> Request) -> Path -> RequestWithBodyHandler -> [Route] -> Path -> Maybe String -> IO Response
+matchOrContinue :: RequestConstructor -> Path -> RequestWithBodyHandler -> [Route] -> Path -> Maybe String -> IO Response
 matchOrContinue requestType pathTemplate handlerFn handlers thePath body =
   case pathVars pathTemplate thePath of
     (Just thePathVars) -> invokeHandler handlerFn thePathVars body
     Nothing -> matchRoute handlers $ requestType thePath body
+
+invokeGetHandler :: GetRequestHandler -> [PathVar] -> [Param] -> GetResponse
+invokeGetHandler (GetJustParams fn) pathVars params = fn params
+invokeGetHandler (GetJustPathVars fn) pathVars params = fn pathVars
+invokeGetHandler (GetParamsAndPathVars fn) pathVars params = fn (params, pathVars)
+invokeGetHandler (GetStatic response) _ _ = Impure $ return $ response
 
 invokeHandler :: RequestWithBodyHandler -> [PathVar] -> Maybe String -> IO Response
 invokeHandler (JustPathVars fn) pathVars maybeBody = fn pathVars
@@ -63,3 +57,11 @@ invokeHandler (JustBody fn) _ maybeBody = maybeBody `extractBodyAndHandle` fn
 extractBodyAndHandle :: Maybe String -> (String -> IO Response) -> IO Response
 extractBodyAndHandle Nothing _ = return $ BAD_REQUEST $ Text "No body included"
 extractBodyAndHandle (Just body) fn = fn body
+
+getResponseToImpureResponse :: GetResponse -> IO Response
+getResponseToImpureResponse response =
+  case response of
+    (Impure response') -> response'
+    (Pure response'')  -> return response''
+
+type RequestConstructor = Path -> Maybe String -> Request
