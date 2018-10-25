@@ -26,13 +26,17 @@ spec = do
 
     describe "path matching" $ do
       it "can respond to different requests to different paths" $ do
-        channel <- startAndContinue [("/a", GET $ GetStatic (R.OK $ R.Text "jam")), ("/b", GET $ GetStatic (R.OK $ R.Text "honey"))]
+        channel <- startAndContinue
+          [ (GET' "/a" $ GetStatic $ R.OK $ R.Text "jam")
+          , (GET' "/b" $ GetStatic $ R.OK $ R.Text "honey")]
         stopServer channel
         "/a" `shouldRespond` (C.OK $ C.Text "jam")
         "/b" `shouldRespond` (C.OK $ C.Text "honey")
 
       it "can respond to different requests with the same path but different methods" $ do
-        channel <- startAndContinue [("/a", GET $ GetStatic (R.OK $ R.Text "jam")), ("/a", POST $ PostJustPathVars (\_ -> return $ R.OK $ R.Text "honey"))]
+        channel <- startAndContinue
+          [ (GET' "/a" $ GetStatic $ R.OK $ R.Text "jam")
+          , (POST' "/a" $ PostJustPathVars $ \_ -> return $ R.OK $ R.Text "honey")]
         stopServer channel
         "/a" `shouldRespond` (C.OK $ C.Text "jam")
         "/a" `postShouldRespond` (C.OK $ C.Text "honey")
@@ -54,23 +58,23 @@ spec = do
 
       it "can handle routes with params" $ do
         startWith
-          [ ( "/b" , GET $ GetJustParams $
+          [ (GET' "/b" $ GetJustParams $
             \params -> notFoundOr $ findParam params "a" >>= \value -> Just $ Pure $ R.OK $ R.Text value) ]
         "/b?a=c&d=e" `shouldRespond` (C.OK $ C.Text "c")
 
       it "rejects malformed query params" $ do
         startWith
-          [ ( "/b" , GET $ GetJustParams $
+          [ (GET' "/b" $ GetJustParams $
             \params -> notFoundOr $ findParam params "d" >>= \value -> Just $ Pure $ R.OK $ R.Text value) ]
         "/b?a=c&d=" `shouldRespond` (C.BAD_REQUEST $ C.Text "Malformed request path or parameters")
 
       it "does not reject no query params" $ do -- TODO is this actually appropriate? maybe do not respond in this case
-        startWith [("/b", GET $ GetJustParams $ \_ -> Pure $ R.OK R.Empty)]
+        startWith [(GET' "/b" $ GetJustParams $ \_ -> Pure $ R.OK R.Empty)]
         "/b?" `shouldRespond` (C.OK C.Empty)
 
     describe "path variables" $ do
       it "can pass path variables to a request handler" $ do
-        startWith [("/b/{a}", GET $ GetParamsAndPathVars $ \request ->
+        startWith [(GET' "/b/{a}" $ GetParamsAndPathVars $ \request ->
           case request of
             (_, pathVars) -> case findParam pathVars "a" of
                (Just value) -> Pure $ R.OK $ R.Text value
@@ -79,7 +83,7 @@ spec = do
         "/b/1" `shouldRespond` (C.OK $ C.Text "1")
 
       it "does not match for path variables if the request handler does not request path variables" $ do
-        startWith [("/b/{a}", GET $ GetJustParams $ \_ -> Pure R.NOT_FOUND)]
+        startWith [(GET' "/b/{a}" $ GetJustParams $ \_ -> Pure R.NOT_FOUND)]
         "/b/1" `shouldRespond` C.NOT_FOUND
 
     describe "dealing with IO in Request Handlers" $ do
@@ -97,7 +101,7 @@ spec = do
       it "can use route handlers that are capable of handling IO for Just Params" $ do
         channel <- newChan
         writeChan channel False
-        forkIO $ startServer channel port [( "/a", GET $ GetJustParams $ \_ -> Impure $ do
+        forkIO $ startServer channel port [(GET' "/a" $ GetJustParams $ \_ -> Impure $ do
             fileContents <- try $ readFile "/Users/markducommun/server/test-assets/test.txt" :: IO (Either IOError String) -- TODO sad, fix this
             case fileContents of
                Left _ ->  return $ R.NOT_FOUND
@@ -107,7 +111,7 @@ spec = do
       it "can use route handlers that are capable of handling IO for Params and Path Vars" $ do
         channel <- newChan
         writeChan channel False
-        forkIO $ startServer channel port [( "/a", GET $ GetParamsAndPathVars $ \_ -> Impure $ do
+        forkIO $ startServer channel port [(GET' "/a" $ GetParamsAndPathVars $ \_ -> Impure $ do
             fileContents <- try $ readFile "/Users/markducommun/server/test-assets/test.txt" :: IO (Either IOError String) -- TODO sad, fix this
             case fileContents of
                Left _ ->  return $ R.NOT_FOUND
@@ -117,11 +121,11 @@ spec = do
     describe "request types" $ do
       describe "GET" $ do
         it "can respond with a static response" $ do
-          startWith $ [("/a", GET $ GetStatic $ R.OK $ R.Text "2")]
+          startWith $ [(GET' "/a" $ GetStatic $ R.OK $ R.Text "2")]
           "/a" `shouldRespond` (C.OK $ C.Text "2")
 
         it "can handle params" $ do
-          startWith $ [("/a", GET $ GetJustParams $ \params ->
+          startWith $ [(GET' "/a" $ GetJustParams $ \params ->
             case findParam params "b" of
               (Just param) -> Pure $ R.OK $ R.Text param
               _ -> Pure $ R.NOT_FOUND
@@ -129,7 +133,7 @@ spec = do
           "/a?b=1" `shouldRespond` (C.OK $ C.Text "1")
 
         it "can handle params and path vars" $ do
-          startWith $ [("/a/{c}", GET $ GetParamsAndPathVars $ \(params, pathVars) ->
+          startWith $ [(GET' "/a/{c}" $ GetParamsAndPathVars $ \(params, pathVars) ->
             case findParam params "b" of
               (Just param) -> case findParam pathVars "c" of
                  (Just var) -> Pure $ R.OK $ R.Text $ param ++ var
@@ -139,7 +143,7 @@ spec = do
 
       describe "POST" $ do
         it "can respond to a post with empty body" $ do
-          startWith $ [("/a/{b}", POST $ PostJustPathVars $ \vars ->
+          startWith $ [(POST' "/a/{b}" $ PostJustPathVars $ \vars ->
             case findParam vars "b" of
               (Just var) -> return $ R.OK $ R.Text var
               _ -> return $ R.NOT_FOUND
@@ -147,12 +151,12 @@ spec = do
           "/a/2" `postShouldRespond` (C.OK $ C.Text "2")
 
         it "can respond to a post with a body" $ do
-          startWith $ [("/a", POST $ PostBody $ \body -> return $ R.OK $ R.Text body)]
+          startWith $ [(POST' "/a" $ PostBody $ \body -> return $ R.OK $ R.Text body)]
           response <- post "localhost" port "/a" $ Text' "2"
           response `shouldBe` (C.OK $ C.Text "2\r")
 
         it "can respond to a post with a body and path vars" $ do
-          startWith $ [("/a/{b}", POST $ PostBodyAndPathVars $ \(body, vars) ->
+          startWith $ [(POST' "/a/{b}" $ PostBodyAndPathVars $ \(body, vars) ->
             case findParam vars "b" of
                 (Just var) -> return $ R.OK $ R.Text $ body ++ var
                 _ -> return $ R.NOT_FOUND
@@ -161,7 +165,7 @@ spec = do
           response `shouldBe` (C.OK $ C.Text "1\r2")
 
     describe "formatting response output" $ do
-      let serverRespondingWith = \response -> startWith [("/a", GET $ GetStatic response)]
+      let serverRespondingWith = \response -> startWith [(GET' "/a" $ GetStatic response)]
       let shouldProduce = \response -> "/a" `shouldRespond` response
 
       it "OK empty" $ do
@@ -189,7 +193,7 @@ spec = do
         shouldProduce $ C.UNAUTHORIZED
 
 
-startWith :: [Route] -> IO ()
+startWith :: [Route'] -> IO ()
 startWith handlers = do
   channel <- newChan
   stopServer channel
@@ -214,7 +218,7 @@ sendChars chars =
     hFlush handle
     return handle
 
-startAndContinue :: [Route] -> IO (Chan Bool)
+startAndContinue :: [Route'] -> IO (Chan Bool)
 startAndContinue handlers = do
   channel <- newChan
   writeChan channel True

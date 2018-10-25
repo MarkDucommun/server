@@ -4,6 +4,7 @@ module Server
   , PortNumber
   , Response'(Pure, Impure)
   , Route
+  , Route' (GET', POST')
   , GetRequestHandler (GetStatic, GetJustParams, GetParamsAndPathVars)
   , PostRequestHandler (PostJustPathVars, PostBody, PostBodyAndPathVars)
   , RequestHandler (GET, POST)
@@ -19,9 +20,9 @@ import           RouteMatching
 import           RequestBuilder
 import           ResponseWriter
 
-startServer :: (Chan Bool) -> PortID -> [Route] -> IO ()
-startServer channel port routes = startSimpleServer channel port $ routeRequest routes
-  where routeRequest routes request = matchRoute routes request
+startServer :: (Chan Bool) -> PortID -> [Route'] -> IO ()
+startServer channel port routes =  startSimpleServer channel port $ routeRequest routes
+  where routeRequest routes request = matchRoute' routes request
 
 startSimpleServer :: (Chan Bool) -> PortID -> RequestHandler'' -> IO ()
 startSimpleServer channel port requestHandler =

@@ -13,19 +13,20 @@ main = do
   startServer
     chan
     (PortNumber 8080)
-    [ ( "/theInternet"
-      , GET $ GetJustParams $ \params ->
-          Impure $ do
-            case getUrlAndPath params of
-              (Just (url, path)) -> getTheInternet url path
-              Nothing -> return $ R.BAD_REQUEST $ R.Text "INVALID PARAMS")
-    , ( "/myComputer"
-      , GET $ GetJustParams $ \params ->
+    [ ( GET' "/theInternet" $ GetJustParams getTheInternet')
+    , ( GET' "/myComputer"
+      $ GetJustParams $ \params ->
           Impure $ do
             case findParam params "path" of
               (Just path) -> getFileContents path
               Nothing     -> return $ R.BAD_REQUEST $ R.Text "INVALID PARAMS")
     ]
+
+getTheInternet' :: [(String, String)] -> Response'
+getTheInternet' params = Impure $
+  case getUrlAndPath params of
+    (Just (url, path)) -> getTheInternet url path
+    Nothing -> return $ R.BAD_REQUEST $ R.Text "INVALID PARAMS"
 
 getTheInternet :: String -> String -> IO R.Response
 getTheInternet url path = do
