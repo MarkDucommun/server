@@ -63,11 +63,9 @@ matchOrContinue requestType pathTemplate handlerFn handlers thePath body =
 
 invokeHandler :: RequestWithBodyHandler -> [PathVar] -> Maybe String -> IO Response
 invokeHandler (JustPathVars fn) pathVars maybeBody = fn pathVars
-invokeHandler (BodyAndPathVars fn) pathVars maybeBody =
-  case maybeBody of
-    (Just body) -> fn (body, pathVars)
-    Nothing -> return $ BAD_REQUEST $ Text "No body included"
-invokeHandler (JustBody fn) _ maybeBody =
-  case maybeBody of
-    (Just body) -> fn body
-    Nothing -> return $ BAD_REQUEST $ Text "No body included"
+invokeHandler (BodyAndPathVars fn) pathVars maybeBody = maybeBody `extractBodyAndHandle` (\body -> fn (body, pathVars))
+invokeHandler (JustBody fn) _ maybeBody = maybeBody `extractBodyAndHandle` fn
+
+extractBodyAndHandle :: Maybe String -> (String -> IO Response) -> IO Response
+extractBodyAndHandle Nothing _ = return $ BAD_REQUEST $ Text "No body included"
+extractBodyAndHandle (Just body) fn = fn body
