@@ -47,10 +47,10 @@ I hope you enjoy reading and modifying this as much as I have enjoyed creating i
     * Server request
     * Client response
     * Server response
+
+### Icebox
 1. Functional dependency injection
 1. Lightweight document store
 1. JSON parser
 1. HTML templating DSL
-
-### Icebox
 1. HTTPS
