@@ -42,7 +42,11 @@ I hope you enjoy reading and modifying this as much as I have enjoyed creating i
     * ~~POST~~
     * PUT
     * DELETE
-1. Handling headers        
+1. Headers
+    * Client request
+    * Server request
+    * Client response
+    * Server response
 1. Functional dependency injection
 1. Lightweight document store
 1. JSON parser
