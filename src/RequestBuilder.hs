@@ -17,17 +17,17 @@ getRequest handle = do
 
 buildRequest :: Handle -> RequestBuilder -> IO (Maybe Request)
 buildRequest handle (GetBuilder path params) = return $ Just $ GetRequest path params
-buildRequest handle (PostBuilder path params contentLength) =
+buildRequest handle (PostBuilder path contentLength) =
   buildRequestWithBodyByEmptyLine handle PostRequest path
-buildRequest handle (NewLinePostBuilder path params) =
+buildRequest handle (NewLinePostBuilder path) =
   buildRequestWithBodyByEmptyLine handle PostRequest path
-buildRequest handle (PutBuilder path params contentLength) =
+buildRequest handle (PutBuilder path contentLength) =
   buildRequestWithBodyByEmptyLine handle PutRequest path
-buildRequest handle (NewLinePutBuilder path params) =
+buildRequest handle (NewLinePutBuilder path) =
   buildRequestWithBodyByEmptyLine handle PutRequest path
-buildRequest handle (DeleteBuilder path params contentLength) =
+buildRequest handle (DeleteBuilder path contentLength) =
   buildRequestWithBodyByEmptyLine handle DeleteRequest path
-buildRequest handle (NewLineDeleteBuilder path params) =
+buildRequest handle (NewLineDeleteBuilder path) =
   buildRequestWithBodyByEmptyLine handle DeleteRequest path
 
 buildRequestWithBodyByEmptyLine :: Handle -> (Path -> Maybe String -> Request) -> Path -> IO (Maybe Request)
@@ -42,19 +42,19 @@ createRequestBuilder headers = do
   (path, params) <- splitPathAndParams rawPath
   case method of
     "GET" -> Just $ GetBuilder path params
-    "POST" -> builderForRequestWithBody PostBuilder NewLinePostBuilder headers path params
-    "PUT" -> builderForRequestWithBody PutBuilder NewLinePutBuilder headers path params
-    "DELETE" -> builderForRequestWithBody DeleteBuilder NewLineDeleteBuilder headers path params
+    "POST" -> builderForRequestWithBody PostBuilder NewLinePostBuilder headers path
+    "PUT" -> builderForRequestWithBody PutBuilder NewLinePutBuilder headers path
+    "DELETE" -> builderForRequestWithBody DeleteBuilder NewLineDeleteBuilder headers path
     _ -> Nothing
 
 builderForRequestWithBody
-  :: (Path -> [Param] -> Int -> RequestBuilder)
-  -> (Path -> [Param] -> RequestBuilder)
-  -> [String] -> Path -> [Param] -> Maybe RequestBuilder
-builderForRequestWithBody builder newLineBuilder headers path params =
+  :: (Path -> Int -> RequestBuilder)
+  -> (Path -> RequestBuilder)
+  -> [String] -> Path -> Maybe RequestBuilder
+builderForRequestWithBody builder newLineBuilder headers path =
   Just $ case getContentLength headers of
-    (Just contentLength) -> builder path params contentLength
-    Nothing -> newLineBuilder path params
+    (Just contentLength) -> builder path contentLength
+    Nothing -> newLineBuilder path
 
 getRawPath :: [String] -> Maybe String
 getRawPath [] = Nothing
@@ -110,9 +110,9 @@ readHeaders handle = do
 
 data RequestBuilder
   = GetBuilder Path [Param]
-  | PostBuilder Path [Param] Int
-  | NewLinePostBuilder Path [Param]
-  | PutBuilder Path [Param] Int
-  | NewLinePutBuilder Path [Param]
-  | DeleteBuilder Path [Param] Int
-  | NewLineDeleteBuilder Path [Param]
+  | PostBuilder Path Int
+  | NewLinePostBuilder Path
+  | PutBuilder Path Int
+  | NewLinePutBuilder Path
+  | DeleteBuilder Path Int
+  | NewLineDeleteBuilder Path
