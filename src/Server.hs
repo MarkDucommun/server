@@ -7,8 +7,7 @@ module Server
   , GetResponse(Pure, Impure)
   , Route(GET, POST, PUT)
   , GetRequestHandler(GetStatic, GetJustParams, GetParamsAndPathVars, GetJustPathVars)
-  , PostRequestHandler(PostJustPathVars, PostBody, PostBodyAndPathVars)
-  , PutRequestHandler(PutJustPathVars, PutBody, PutBodyAndPathVars)
+  , RequestWithBodyHandler(JustPathVars, JustBody, BodyAndPathVars)
   , Request(GetRequest, PostRequest, PutRequest)
   ) where
 

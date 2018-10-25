@@ -36,7 +36,7 @@ spec = do
       it "can respond to different requests with the same path but different methods" $ do
         channel <- startAndContinue
           [ (GET "/a" $ GetStatic $ R.OK $ R.Text "jam")
-          , (POST "/a" $ PostJustPathVars $ \_ -> return $ R.OK $ R.Text "honey")]
+          , (POST "/a" $ JustPathVars $ \_ -> return $ R.OK $ R.Text "honey")]
         stopServer channel
         "/a" `shouldRespond` (C.OK $ C.Text "jam")
         "/a" `postShouldRespond` (C.OK $ C.Text "honey")
@@ -151,7 +151,7 @@ spec = do
 
       describe "POST" $ do
         it "can respond to a post with empty body" $ do
-          startWith $ [(POST "/a/{b}" $ PostJustPathVars $ \vars ->
+          startWith $ [(POST "/a/{b}" $ JustPathVars $ \vars ->
             case findParam vars "b" of
               (Just var) -> return $ R.OK $ R.Text var
               _ -> return $ R.NOT_FOUND
@@ -159,12 +159,12 @@ spec = do
           "/a/2" `postShouldRespond` (C.OK $ C.Text "2")
 
         it "can respond to a post with a body" $ do
-          startWith $ [(POST "/a" $ PostBody $ \body -> return $ R.OK $ R.Text body)]
+          startWith $ [(POST "/a" $ JustBody $ \body -> return $ R.OK $ R.Text body)]
           response <- post "localhost" port "/a" $ C.Text "2"
           response `shouldBe` (C.OK $ C.Text "2\r")
 
         it "can respond to a post with a body and path vars" $ do
-          startWith $ [(POST "/a/{b}" $ PostBodyAndPathVars $ \(body, vars) ->
+          startWith $ [(POST "/a/{b}" $ BodyAndPathVars $ \(body, vars) ->
             case findParam vars "b" of
                 (Just var) -> return $ R.OK $ R.Text $ body ++ var
                 _ -> return $ R.NOT_FOUND
@@ -174,7 +174,7 @@ spec = do
 
       describe "PUT" $ do
         it "can respond to a put with empty body" $ do
-          startWith $ [(PUT "/a/{b}" $ PutJustPathVars $ \vars ->
+          startWith $ [(PUT "/a/{b}" $ JustPathVars $ \vars ->
             case findParam vars "b" of
               (Just var) -> return $ R.OK $ R.Text var
               _ -> return $ R.NOT_FOUND
@@ -182,12 +182,12 @@ spec = do
           "/a/2" `putShouldRespond` (C.OK $ C.Text "2")
 
         it "can respond to a put with a body" $ do
-          startWith $ [(PUT "/a" $ PutBody $ \body -> return $ R.OK $ R.Text body)]
+          startWith $ [(PUT "/a" $ JustBody $ \body -> return $ R.OK $ R.Text body)]
           response <- put "localhost" port "/a" $ C.Text "2"
           response `shouldBe` (C.OK $ C.Text "2\r")
 
         it "can respond to a put with a body and path vars" $ do
-          startWith $ [(PUT "/a/{b}" $ PutBodyAndPathVars $ \(body, vars) ->
+          startWith $ [(PUT "/a/{b}" $ BodyAndPathVars $ \(body, vars) ->
             case findParam vars "b" of
                 (Just var) -> return $ R.OK $ R.Text $ body ++ var
                 _ -> return $ R.NOT_FOUND

@@ -7,8 +7,7 @@ module RouteMatching
   , GetResponse(Pure, Impure)
   , GetRequestHandler(GetStatic, GetJustParams, GetParamsAndPathVars,
                   GetJustPathVars)
-  , PostRequestHandler(PostJustPathVars, PostBody, PostBodyAndPathVars)
-  , PutRequestHandler(PutJustPathVars, PutBody, PutBodyAndPathVars)
+  , RequestWithBodyHandler(JustPathVars, JustBody, BodyAndPathVars)
   ) where
 
 import           PathVar
@@ -47,18 +46,18 @@ getResponseToImpureResponse response =
     (Pure response'')  -> return response''
 
 matchPostRoute :: Route -> [Route] -> Path -> Maybe String -> IO Response
-matchPostRoute (POST pathTemplate (PostJustPathVars fn)) handlers thePath body =
+matchPostRoute (POST pathTemplate (JustPathVars fn)) handlers thePath body =
   case pathVars pathTemplate thePath of
     (Just thePathVars) -> fn thePathVars
     Nothing            -> matchRoute handlers $ PostRequest thePath body
-matchPostRoute (POST pathTemplate (PostBodyAndPathVars fn)) handlers thePath maybeBody =
+matchPostRoute (POST pathTemplate (BodyAndPathVars fn)) handlers thePath maybeBody =
   case pathVars pathTemplate thePath of
     (Just thePathVars) ->
       case maybeBody of
         (Just body) -> fn (body, thePathVars)
         Nothing     -> matchRoute handlers $ PostRequest thePath maybeBody
     Nothing -> matchRoute handlers $ PostRequest thePath maybeBody
-matchPostRoute (POST path (PostBody fn)) handlers thePath maybeBody =
+matchPostRoute (POST path (JustBody fn)) handlers thePath maybeBody =
   if path == thePath
     then case maybeBody of
            (Just body) -> fn body
@@ -67,18 +66,18 @@ matchPostRoute (POST path (PostBody fn)) handlers thePath maybeBody =
 matchPostRoute _ handlers path body = matchRoute handlers $ PostRequest path body
 
 matchPutRoute :: Route -> [Route] -> Path -> Maybe String -> IO Response
-matchPutRoute (PUT pathTemplate (PutJustPathVars fn)) handlers thePath body =
+matchPutRoute (PUT pathTemplate (JustPathVars fn)) handlers thePath body =
   case pathVars pathTemplate thePath of
     (Just thePathVars) -> fn thePathVars
     Nothing            -> matchRoute handlers $ PutRequest thePath body
-matchPutRoute (PUT pathTemplate (PutBodyAndPathVars fn)) handlers thePath maybeBody =
+matchPutRoute (PUT pathTemplate (BodyAndPathVars fn)) handlers thePath maybeBody =
   case pathVars pathTemplate thePath of
     (Just thePathVars) ->
       case maybeBody of
         (Just body) -> fn (body, thePathVars)
         Nothing     -> matchRoute handlers $ PutRequest thePath maybeBody
     Nothing -> matchRoute handlers $ PutRequest thePath maybeBody
-matchPutRoute (PUT path (PutBody fn)) handlers thePath maybeBody =
+matchPutRoute (PUT path (JustBody fn)) handlers thePath maybeBody =
   if path == thePath
     then case maybeBody of
            (Just body) -> fn body

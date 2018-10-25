@@ -9,8 +9,7 @@ module Request
   , PathVarRequest
   , Route (GET, POST, PUT)
   , GetRequestHandler (GetJustParams, GetParamsAndPathVars, GetJustPathVars, GetStatic)
-  , PostRequestHandler(PostJustPathVars, PostBody, PostBodyAndPathVars)
-  , PutRequestHandler(PutJustPathVars, PutBody, PutBodyAndPathVars)
+  , RequestWithBodyHandler(JustPathVars, JustBody, BodyAndPathVars)
 ) where
 
 import Responses
@@ -39,8 +38,8 @@ type PathVarRequest = [PathVar]
 
 data Route
   = GET Path GetRequestHandler
-  | POST Path PostRequestHandler
-  | PUT Path PutRequestHandler
+  | POST Path RequestWithBodyHandler
+  | PUT Path RequestWithBodyHandler
 
 data GetRequestHandler
   = GetJustParams (ParamRequest -> GetResponse)
@@ -48,12 +47,7 @@ data GetRequestHandler
   | GetJustPathVars (PathVarRequest -> GetResponse)
   | GetStatic Response
 
-data PostRequestHandler
-  = PostJustPathVars (PathVarRequest -> IO Response)
-  | PostBodyAndPathVars (BodyPathVarRequest -> IO Response)
-  | PostBody (String -> IO Response)
-
-data PutRequestHandler
-  = PutJustPathVars (PathVarRequest -> IO Response)
-  | PutBodyAndPathVars (BodyPathVarRequest -> IO Response)
-  | PutBody (String -> IO Response)
+data RequestWithBodyHandler
+  = JustPathVars (PathVarRequest -> IO Response)
+  | BodyAndPathVars (BodyPathVarRequest -> IO Response)
+  | JustBody (String -> IO Response)
