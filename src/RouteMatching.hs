@@ -17,8 +17,8 @@ import           Responses
 matchRoute :: [Route] -> Request -> IO Response
 matchRoute [] _ = return NOT_FOUND
 matchRoute (handler:handlers) (GetRequest path params) = matchGetRoute handler handlers path params
-matchRoute (handler:handlers) (PostRequest path body) = matchPostRoute handler handlers path body
-matchRoute (handler:handlers) (PutRequest path body) = matchPutRoute handler handlers path body
+matchRoute (handler:handlers) (PostRequest path body) = matchPostRoute' handler handlers path body
+matchRoute (handler:handlers) (PutRequest path body) = matchPutRoute' handler handlers path body
 
 matchGetRoute :: Route -> [Route] -> Path -> [Param] -> IO Response
 matchGetRoute (GET path (GetJustParams fn)) handlers thePath params =
@@ -45,42 +45,27 @@ getResponseToImpureResponse response =
     (Impure response') -> response'
     (Pure response'')  -> return response''
 
-matchPostRoute :: Route -> [Route] -> Path -> Maybe String -> IO Response
-matchPostRoute (POST pathTemplate (JustPathVars fn)) handlers thePath body =
+matchPostRoute' :: Route -> [Route] -> Path -> Maybe String -> IO Response
+matchPostRoute' (POST pathTemplate handlerFn) handlers thePath body =
   case pathVars pathTemplate thePath of
-    (Just thePathVars) -> fn thePathVars
-    Nothing            -> matchRoute handlers $ PostRequest thePath body
-matchPostRoute (POST pathTemplate (BodyAndPathVars fn)) handlers thePath maybeBody =
-  case pathVars pathTemplate thePath of
-    (Just thePathVars) ->
-      case maybeBody of
-        (Just body) -> fn (body, thePathVars)
-        Nothing     -> matchRoute handlers $ PostRequest thePath maybeBody
-    Nothing -> matchRoute handlers $ PostRequest thePath maybeBody
-matchPostRoute (POST path (JustBody fn)) handlers thePath maybeBody =
-  if path == thePath
-    then case maybeBody of
-           (Just body) -> fn body
-           Nothing     -> matchRoute handlers $ PostRequest thePath maybeBody
-    else matchRoute handlers $ PostRequest thePath maybeBody
-matchPostRoute _ handlers path body = matchRoute handlers $ PostRequest path body
+    (Just thePathVars) -> invokeHandler handlerFn thePathVars body
+    Nothing -> matchRoute handlers $ PostRequest thePath body
+matchPostRoute' _ handlers thePath body = matchRoute handlers $ PostRequest thePath body
 
-matchPutRoute :: Route -> [Route] -> Path -> Maybe String -> IO Response
-matchPutRoute (PUT pathTemplate (JustPathVars fn)) handlers thePath body =
+matchPutRoute' :: Route -> [Route] -> Path -> Maybe String -> IO Response
+matchPutRoute' (PUT pathTemplate handlerFn) handlers thePath body =
   case pathVars pathTemplate thePath of
-    (Just thePathVars) -> fn thePathVars
-    Nothing            -> matchRoute handlers $ PutRequest thePath body
-matchPutRoute (PUT pathTemplate (BodyAndPathVars fn)) handlers thePath maybeBody =
-  case pathVars pathTemplate thePath of
-    (Just thePathVars) ->
-      case maybeBody of
-        (Just body) -> fn (body, thePathVars)
-        Nothing     -> matchRoute handlers $ PutRequest thePath maybeBody
-    Nothing -> matchRoute handlers $ PutRequest thePath maybeBody
-matchPutRoute (PUT path (JustBody fn)) handlers thePath maybeBody =
-  if path == thePath
-    then case maybeBody of
-           (Just body) -> fn body
-           Nothing     -> matchRoute handlers $ PutRequest thePath maybeBody
-    else matchRoute handlers $ PutRequest thePath maybeBody
-matchPutRoute _ handlers path body = matchRoute handlers $ PutRequest path body
+    (Just thePathVars) -> invokeHandler handlerFn thePathVars body
+    Nothing -> matchRoute handlers $ PutRequest thePath body
+matchPutRoute' _ handlers thePath body = matchRoute handlers $ PutRequest thePath body
+
+invokeHandler :: RequestWithBodyHandler -> [PathVar] -> Maybe String -> IO Response
+invokeHandler (JustPathVars fn) pathVars maybeBody = fn pathVars
+invokeHandler (BodyAndPathVars fn) pathVars maybeBody =
+  case maybeBody of
+    (Just body) -> fn (body, pathVars)
+    Nothing -> return $ BAD_REQUEST $ Text "No body included"
+invokeHandler (JustBody fn) _ maybeBody =
+  case maybeBody of
+    (Just body) -> fn body
+    Nothing -> return $ BAD_REQUEST $ Text "No body included"
