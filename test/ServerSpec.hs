@@ -172,6 +172,29 @@ spec = do
           response <- post "localhost" port "/a/2" $ C.Text "1"
           response `shouldBe` (C.OK $ C.Text "1\r2")
 
+      describe "PUT" $ do
+        it "can respond to a put with empty body" $ do
+          startWith $ [(PUT "/a/{b}" $ PutJustPathVars $ \vars ->
+            case findParam vars "b" of
+              (Just var) -> return $ R.OK $ R.Text var
+              _ -> return $ R.NOT_FOUND
+            )]
+          "/a/2" `putShouldRespond` (C.OK $ C.Text "2")
+
+        it "can respond to a put with a body" $ do
+          startWith $ [(PUT "/a" $ PutBody $ \body -> return $ R.OK $ R.Text body)]
+          response <- put "localhost" port "/a" $ C.Text "2"
+          response `shouldBe` (C.OK $ C.Text "2\r")
+
+        it "can respond to a put with a body and path vars" $ do
+          startWith $ [(PUT "/a/{b}" $ PutBodyAndPathVars $ \(body, vars) ->
+            case findParam vars "b" of
+                (Just var) -> return $ R.OK $ R.Text $ body ++ var
+                _ -> return $ R.NOT_FOUND
+            )]
+          response <- put "localhost" port "/a/2" $ C.Text "1"
+          response `shouldBe` (C.OK $ C.Text "1\r2")
+
     describe "formatting response output" $ do
       let serverRespondingWith = \response -> startWith [(GET "/a" $ GetStatic response)]
       let shouldProduce = \response -> "/a" `shouldRespond` response
@@ -216,6 +239,11 @@ shouldRespond path expected = do
 postShouldRespond :: String -> C.Response -> IO ()
 postShouldRespond path expected = do
   response <- post "localhost" port path C.Empty
+  response `shouldBe` expected
+
+putShouldRespond :: String -> C.Response -> IO ()
+putShouldRespond path expected = do
+  response <- put "localhost" port path C.Empty
   response `shouldBe` expected
 
 sendChars :: String -> IO Handle

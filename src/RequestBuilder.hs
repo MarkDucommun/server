@@ -23,6 +23,16 @@ getRequest handle = do
       case maybeBody of
         (Just body) -> return $ Just $ PostRequest path body
         Nothing -> return $ Just $ EmptyPostRequest path
+    (Just (PutBuilder path params contentLength)) -> do
+      maybeBody <- getBodyByEmptyLine handle
+      case maybeBody of
+        (Just body) -> return $ Just $ PutRequest path body
+        Nothing -> return $ Just $ EmptyPutRequest path
+    (Just (NewLinePutBuilder path params)) -> do
+      maybeBody <- getBodyByEmptyLine handle
+      case maybeBody of
+        (Just body) -> return $ Just $ PutRequest path body
+        Nothing -> return $ Just $ EmptyPutRequest path
     Nothing -> do
       return Nothing
 
@@ -36,6 +46,9 @@ createRequestBuilder headers = do
     "POST" -> Just $ case getContentLength headers of
       (Just contentLength) -> PostBuilder path params contentLength
       Nothing -> NewLinePostBuilder path params
+    "PUT" -> Just $ case getContentLength headers of
+      (Just contentLength) -> PutBuilder path params contentLength
+      Nothing -> NewLinePutBuilder path params
     _ -> Nothing
 
 getRawPath :: [String] -> Maybe String
@@ -94,3 +107,5 @@ data RequestBuilder
   = GetBuilder Path [Param]
   | PostBuilder Path [Param] Int
   | NewLinePostBuilder Path [Param]
+  | PutBuilder Path [Param] Int
+  | NewLinePutBuilder Path [Param]
