@@ -1,9 +1,7 @@
 module SplitPathAndParams (splitPathAndParams) where
 
 import Utilities
-
-type Param = (String, String)
-type Path = String
+import Request
 
 splitPathAndParams :: String -> Maybe (Path, [Param])
 splitPathAndParams rawPath =
