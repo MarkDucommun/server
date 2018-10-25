@@ -41,7 +41,7 @@ I hope you enjoy reading and modifying this as much as I have enjoyed creating i
     * ~~GET~~
     * ~~POST~~
     * ~~PUT~~
-    * DELETE
+    * ~~DELETE~~
 1. Headers
     * Client request
     * Server request

@@ -195,6 +195,29 @@ spec = do
           response <- put "localhost" port "/a/2" $ C.Text "1"
           response `shouldBe` (C.OK $ C.Text "1\r2")
 
+      describe "DELETE" $ do
+        it "can respond to a delete with empty body" $ do
+          startWith $ [(DELETE "/a/{b}" $ JustPathVars $ \vars ->
+            case findParam vars "b" of
+              (Just var) -> return $ R.OK $ R.Text var
+              _ -> return $ R.NOT_FOUND
+            )]
+          "/a/2" `deleteShouldRespond` (C.OK $ C.Text "2")
+
+        it "can respond to a delete with a body" $ do
+          startWith $ [(DELETE "/a" $ JustBody $ \body -> return $ R.OK $ R.Text body)]
+          response <- delete "localhost" port "/a" $ C.Text "2"
+          response `shouldBe` (C.OK $ C.Text "2\r")
+
+        it "can respond to a put with a body and path vars" $ do
+          startWith $ [(DELETE "/a/{b}" $ BodyAndPathVars $ \(body, vars) ->
+            case findParam vars "b" of
+                (Just var) -> return $ R.OK $ R.Text $ body ++ var
+                _ -> return $ R.NOT_FOUND
+            )]
+          response <- delete "localhost" port "/a/2" $ C.Text "1"
+          response `shouldBe` (C.OK $ C.Text "1\r2")
+
     describe "formatting response output" $ do
       let serverRespondingWith = \response -> startWith [(GET "/a" $ GetStatic response)]
       let shouldProduce = \response -> "/a" `shouldRespond` response
@@ -244,6 +267,11 @@ postShouldRespond path expected = do
 putShouldRespond :: String -> C.Response -> IO ()
 putShouldRespond path expected = do
   response <- put "localhost" port path C.Empty
+  response `shouldBe` expected
+
+deleteShouldRespond :: String -> C.Response -> IO ()
+deleteShouldRespond path expected = do
+  response <- delete "localhost" port path C.Empty
   response `shouldBe` expected
 
 sendChars :: String -> IO Handle

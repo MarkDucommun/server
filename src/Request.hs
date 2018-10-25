@@ -2,12 +2,12 @@ module Request
   ( Param
   , Path
   , PathVar
-  , Request (GetRequest, PostRequest, PutRequest)
+  , Request (GetRequest, PostRequest, PutRequest, DeleteRequest)
   , ParamRequest
   , ParamPathVarRequest
   , BodyPathVarRequest
   , PathVarRequest
-  , Route (GET, POST, PUT)
+  , Route (GET, POST, PUT, DELETE)
   , GetRequestHandler (GetJustParams, GetParamsAndPathVars, GetJustPathVars, GetStatic)
   , RequestWithBodyHandler(JustPathVars, JustBody, BodyAndPathVars)
 ) where
@@ -27,6 +27,8 @@ data Request
                 (Maybe String)
   | PutRequest Path
                (Maybe String)
+  | DeleteRequest Path
+               (Maybe String)
 
 type ParamRequest = [Param]
 
@@ -40,6 +42,7 @@ data Route
   = GET Path GetRequestHandler
   | POST Path RequestWithBodyHandler
   | PUT Path RequestWithBodyHandler
+  | DELETE Path RequestWithBodyHandler
 
 data GetRequestHandler
   = GetJustParams (ParamRequest -> GetResponse)

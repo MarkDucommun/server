@@ -5,10 +5,10 @@ module Server
   , Param
   , PortNumber
   , GetResponse(Pure, Impure)
-  , Route(GET, POST, PUT)
+  , Route(GET, POST, PUT, DELETE)
   , GetRequestHandler(GetStatic, GetJustParams, GetParamsAndPathVars, GetJustPathVars)
   , RequestWithBodyHandler(JustPathVars, JustBody, BodyAndPathVars)
-  , Request(GetRequest, PostRequest, PutRequest)
+  , Request(GetRequest, PostRequest, PutRequest, DeleteRequest)
   ) where
 
 import           Control.Concurrent.Chan

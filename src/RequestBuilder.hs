@@ -8,7 +8,7 @@ import           Utilities
 import           RouteMatching
 import           SplitPathAndParams
 
-getRequest :: Handle -> IO (Maybe Request)
+getRequest :: Handle -> IO (Maybe Request) -- TODO cleanup
 getRequest handle = do
   headers <- readHeaders handle
   case createRequestBuilder headers of
@@ -33,10 +33,20 @@ getRequest handle = do
       case maybeBody of
         (Just body) -> return $ Just $ PutRequest path $ Just body
         Nothing -> return $ Just $ PutRequest path Nothing
+    (Just (DeleteBuilder path params contentLength)) -> do
+      maybeBody <- getBodyByEmptyLine handle
+      case maybeBody of
+        (Just body) -> return $ Just $ DeleteRequest path $ Just body
+        Nothing -> return $ Just $ DeleteRequest path Nothing
+    (Just (NewLineDeleteBuilder path params)) -> do
+      maybeBody <- getBodyByEmptyLine handle
+      case maybeBody of
+        (Just body) -> return $ Just $ DeleteRequest path $ Just body
+        Nothing -> return $ Just $ DeleteRequest path Nothing
     Nothing -> do
       return Nothing
 
-createRequestBuilder :: [String] -> Maybe RequestBuilder
+createRequestBuilder :: [String] -> Maybe RequestBuilder -- TODO cleanup
 createRequestBuilder headers = do
   method <- getMethod headers
   rawPath <- getRawPath headers
@@ -49,6 +59,9 @@ createRequestBuilder headers = do
     "PUT" -> Just $ case getContentLength headers of
       (Just contentLength) -> PutBuilder path params contentLength
       Nothing -> NewLinePutBuilder path params
+    "DELETE" -> Just $ case getContentLength headers of
+      (Just contentLength) -> DeleteBuilder path params contentLength
+      Nothing -> NewLineDeleteBuilder path params
     _ -> Nothing
 
 getRawPath :: [String] -> Maybe String
@@ -109,3 +122,5 @@ data RequestBuilder
   | NewLinePostBuilder Path [Param]
   | PutBuilder Path [Param] Int
   | NewLinePutBuilder Path [Param]
+  | DeleteBuilder Path [Param] Int
+  | NewLineDeleteBuilder Path [Param]

@@ -2,8 +2,8 @@ module RouteMatching
   ( matchRoute
   , Path
   , Param
-  , Route(GET, POST, PUT)
-  , Request(GetRequest, PostRequest, PutRequest)
+  , Route(GET, POST, PUT, DELETE)
+  , Request(GetRequest, PostRequest, PutRequest, DeleteRequest)
   , GetResponse(Pure, Impure)
   , GetRequestHandler(GetStatic, GetJustParams, GetParamsAndPathVars,
                   GetJustPathVars)
@@ -19,6 +19,7 @@ matchRoute [] _ = return NOT_FOUND
 matchRoute (handler:handlers) (GetRequest path params) = matchGetRoute handler handlers path params
 matchRoute (handler:handlers) (PostRequest path body) = matchPostRoute handler handlers path body
 matchRoute (handler:handlers) (PutRequest path body) = matchPutRoute handler handlers path body
+matchRoute (handler:handlers) (DeleteRequest path body) = matchDeleteRoute handler handlers path body
 
 matchGetRoute :: Route -> [Route] -> Path -> [Param] -> IO Response
 matchGetRoute (GET path handlerFn) handlers thePath params =
@@ -36,6 +37,11 @@ matchPutRoute :: Route -> [Route] -> Path -> Maybe String -> IO Response
 matchPutRoute (PUT pathTemplate handlerFn) handlers thePath body =
   matchOrContinue PutRequest pathTemplate handlerFn handlers thePath body
 matchPutRoute _ handlers thePath body = matchRoute handlers $ PutRequest thePath body
+
+matchDeleteRoute :: Route -> [Route] -> Path -> Maybe String -> IO Response
+matchDeleteRoute (DELETE pathTemplate handlerFn) handlers thePath body = do
+  matchOrContinue DeleteRequest pathTemplate handlerFn handlers thePath body
+matchDeleteRoute _ handlers thePath body = matchRoute handlers $ DeleteRequest thePath body
 
 matchOrContinue :: RequestConstructor -> Path -> RequestWithBodyHandler -> [Route] -> Path -> Maybe String -> IO Response
 matchOrContinue requestType pathTemplate handlerFn handlers thePath body =
