@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f3bdd84b-dade-4a53-930d-21745643a705" name="Default Changelist" comment="A bit more refactoring to remove more than one level of conditional nesting per function">
-      <change beforePath="$PROJECT_DIR$/src/Responses.hs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Responses.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/RouteMatching.hs" beforeDir="false" afterPath="$PROJECT_DIR$/src/RouteMatching.hs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Server.hs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Server.hs" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.stack-work/" />
@@ -101,20 +101,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Server.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="360">
-              <caret line="24" column="60" lean-forward="true" selection-start-line="24" selection-start-column="60" selection-end-line="24" selection-end-column="60" />
+            <state relative-caret-position="270">
+              <caret line="18" column="31" lean-forward="true" selection-start-line="18" selection-start-column="31" selection-end-line="18" selection-end-column="31" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/RouteMatching.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="90">
-              <caret line="6" column="15" lean-forward="true" selection-start-line="6" selection-start-column="15" selection-end-line="6" selection-end-column="15" />
+            <state relative-caret-position="756">
+              <caret line="91" column="20" selection-start-line="91" selection-start-column="20" selection-end-line="91" selection-end-column="20" />
             </state>
           </provider>
         </entry>
@@ -171,10 +171,16 @@
       <find>HERE</find>
       <find>RequestHandler</find>
       <find>POST'</find>
+      <find>matchRoute'</find>
+      <find>matchGetRoute'</find>
+      <find>matchEmptyPostRoute'</find>
     </findStrings>
     <replaceStrings>
       <replace>Route</replace>
       <replace>POST</replace>
+      <replace>matchRoute</replace>
+      <replace>matchGetRoute</replace>
+      <replace>matchEmptyPostRoute</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -211,11 +217,11 @@
         <option value="$PROJECT_DIR$/src/ParamExtractor.hs" />
         <option value="$PROJECT_DIR$/src/RequestBuilder.hs" />
         <option value="$PROJECT_DIR$/src/SplitPathAndParams.hs" />
-        <option value="$PROJECT_DIR$/src/RouteMatching.hs" />
         <option value="$PROJECT_DIR$/test/ServerSpec.hs" />
         <option value="$PROJECT_DIR$/app/Main.hs" />
         <option value="$PROJECT_DIR$/src/Responses.hs" />
         <option value="$PROJECT_DIR$/src/Server.hs" />
+        <option value="$PROJECT_DIR$/src/RouteMatching.hs" />
       </list>
     </option>
   </component>
@@ -391,7 +397,7 @@
       <workItem from="1540055988880" duration="92000" />
       <workItem from="1540056346734" duration="129000" />
       <workItem from="1540082522367" duration="7401000" />
-      <workItem from="1540167204957" duration="32373000" />
+      <workItem from="1540167204957" duration="32530000" />
     </task>
     <task id="LOCAL-00001" summary="Refactoring path var extraction">
       <created>1539858830418</created>
@@ -418,7 +424,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="195938000" />
+    <option name="totallyTimeSpent" value="196095000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1680" height="1050" extended-state="0" />
@@ -680,17 +686,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/RouteMatching.hs">
+    <entry file="file://$PROJECT_DIR$/src/Server.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="6" column="15" lean-forward="true" selection-start-line="6" selection-start-column="15" selection-end-line="6" selection-end-column="15" />
+        <state relative-caret-position="270">
+          <caret line="18" column="31" lean-forward="true" selection-start-line="18" selection-start-column="31" selection-end-line="18" selection-end-column="31" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Server.hs">
+    <entry file="file://$PROJECT_DIR$/src/RouteMatching.hs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="24" column="60" lean-forward="true" selection-start-line="24" selection-start-column="60" selection-end-line="24" selection-end-column="60" />
+        <state relative-caret-position="756">
+          <caret line="91" column="20" selection-start-line="91" selection-start-column="20" selection-end-line="91" selection-end-column="20" />
         </state>
       </provider>
     </entry>

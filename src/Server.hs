@@ -20,7 +20,7 @@ import           ResponseWriter
 
 startServer :: (Chan Bool) -> PortID -> [Route] -> IO ()
 startServer channel port routes =  startSimpleServer channel port $ routeRequest routes
-  where routeRequest routes request = matchRoute' routes request
+  where routeRequest routes request = matchRoute routes request
 
 startSimpleServer :: (Chan Bool) -> PortID -> RequestHandler -> IO ()
 startSimpleServer channel port requestHandler =
