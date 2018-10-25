@@ -15,6 +15,7 @@ Both routes will respond to any HTTP verb.
 
 I hope you enjoy reading and modifying this as much as I have enjoyed creating it.
 
+---
 ### How To Run
 
 1. Install Stack
@@ -28,4 +29,24 @@ I hope you enjoy reading and modifying this as much as I have enjoyed creating i
 ### How To Test
 1. Install Stack
 1. Run ```stack test```
- 
+
+--- 
+### Backlog
+1. HTTP Client
+    * ~~GET~~
+    * ~~POST~~
+    * PUT
+    * DELETE
+1. HTTP Server
+    * ~~GET~~
+    * ~~POST~~
+    * PUT
+    * DELETE
+1. Handling headers        
+1. Functional dependency injection
+1. Lightweight document store
+1. JSON parser
+1. HTML templating DSL
+
+### Icebox
+1. HTTPS
