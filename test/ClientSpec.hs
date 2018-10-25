@@ -88,6 +88,33 @@ spec = do
               , "HELLO\r"
               , "\r"]
 
+    describe "DELETE request" $ do
+      describe "Empty body" $ do
+        it "does not send a body" $ do
+          forkIO $ do
+            threadDelay 100
+            delete "localhost" port "/hello" Empty
+            return ()
+          withHandleDo port $ \handle -> do
+            assertRequestMatches handle $
+             ["DELETE /hello HTTP/1.1\r", "Host: localhost:8080\r", "Cache-Control: no-cache\r", "\r", "\r"]
+
+      describe "Text body" $ do
+        it "sends the body along with a content-length header" $ do
+          forkIO $ do
+            threadDelay 100
+            delete "localhost" port "/hello" $ Text "HELLO"
+            return ()
+          withHandleDo port $ \handle -> do
+            assertRequestMatches handle $
+              [ "DELETE /hello HTTP/1.1\r"
+              , "Host: localhost:8080\r"
+              , "Cache-Control: no-cache\r"
+              , "Content-Length: 5\r"
+              , "\r"
+              , "HELLO\r"
+              , "\r"]
+
     describe "Response parsing" $ do
       describe "OK" $ do
         it "can parse empty responses" $ do

@@ -35,12 +35,12 @@ I hope you enjoy reading and modifying this as much as I have enjoyed creating i
 1. HTTP Client
     * ~~GET~~
     * ~~POST~~
-    * PUT
-    * DELETE
+    * ~~PUT~~
+    * ~~DELETE~~
 1. HTTP Server
     * ~~GET~~
     * ~~POST~~
-    * PUT
+    * ~~PUT~~
     * DELETE
 1. Headers
     * Client request
