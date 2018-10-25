@@ -26,13 +26,13 @@ getRequest handle = do
     (Just (PutBuilder path params contentLength)) -> do
       maybeBody <- getBodyByEmptyLine handle
       case maybeBody of
-        (Just body) -> return $ Just $ PutRequest path body
-        Nothing -> return $ Just $ EmptyPutRequest path
+        (Just body) -> return $ Just $ PutRequest path $ Just body
+        Nothing -> return $ Just $ PutRequest path Nothing
     (Just (NewLinePutBuilder path params)) -> do
       maybeBody <- getBodyByEmptyLine handle
       case maybeBody of
-        (Just body) -> return $ Just $ PutRequest path body
-        Nothing -> return $ Just $ EmptyPutRequest path
+        (Just body) -> return $ Just $ PutRequest path $ Just body
+        Nothing -> return $ Just $ PutRequest path Nothing
     Nothing -> do
       return Nothing
 
