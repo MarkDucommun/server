@@ -2,23 +2,23 @@ module RouteMatching
   ( matchRoute
   , Path
   , Param
-  , Route (GET, POST, PUT)
-  , Request(GetRequest, PostRequest, EmptyPostRequest, PutRequest, EmptyPutRequest)
+  , Route(GET, POST, PUT)
+  , Request(GetRequest, PostRequest, PutRequest, EmptyPutRequest)
   , GetResponse(Pure, Impure)
-  , GetRequestHandler (GetStatic, GetJustParams, GetParamsAndPathVars, GetJustPathVars)
+  , GetRequestHandler(GetStatic, GetJustParams, GetParamsAndPathVars,
+                  GetJustPathVars)
   , PostRequestHandler(PostJustPathVars, PostBody, PostBodyAndPathVars)
   , PutRequestHandler(PutJustPathVars, PutBody, PutBodyAndPathVars)
   ) where
 
 import           PathVar
-import           Responses
 import           Request
+import           Responses
 
 matchRoute :: [Route] -> Request -> IO Response
 matchRoute [] _ = return NOT_FOUND
 matchRoute (handler:handlers) (GetRequest path params) = matchGetRoute handler handlers path params
 matchRoute (handler:handlers) (PostRequest path body) = matchPostRoute handler handlers path body
-matchRoute (handler:handlers) (EmptyPostRequest path) = matchEmptyPostRoute handler handlers path
 matchRoute (handler:handlers) (PutRequest path body) = matchPutRoute handler handlers path body
 matchRoute (handler:handlers) (EmptyPutRequest path) = matchEmptyPutRoute handler handlers path
 
@@ -34,7 +34,7 @@ matchGetRoute (GET pathTemplate (GetJustPathVars fn)) handlers thePath params =
 matchGetRoute (GET pathTemplate (GetParamsAndPathVars fn)) handlers thePath params =
   case pathVars pathTemplate thePath of
     (Just thePathVars) -> getResponseToImpureResponse $ fn (params, thePathVars)
-    Nothing            -> matchRoute handlers $ GetRequest thePath params
+    Nothing -> matchRoute handlers $ GetRequest thePath params
 matchGetRoute (GET path (GetStatic response)) remaining thePath params =
   if path == thePath
     then return response
@@ -47,30 +47,25 @@ getResponseToImpureResponse response =
     (Impure response') -> response'
     (Pure response'')  -> return response''
 
-matchPostRoute :: Route -> [Route] -> Path -> String -> IO Response
+matchPostRoute :: Route -> [Route] -> Path -> Maybe String -> IO Response
 matchPostRoute (POST pathTemplate (PostJustPathVars fn)) handlers thePath body =
   case pathVars pathTemplate thePath of
     (Just thePathVars) -> fn thePathVars
     Nothing            -> matchRoute handlers $ PostRequest thePath body
-matchPostRoute (POST pathTemplate (PostBodyAndPathVars fn)) handlers thePath body =
+matchPostRoute (POST pathTemplate (PostBodyAndPathVars fn)) handlers thePath maybeBody =
   case pathVars pathTemplate thePath of
-    (Just thePathVars) -> fn (body, thePathVars)
-    Nothing            -> matchRoute handlers $ PostRequest thePath body
-matchPostRoute (POST path (PostBody fn)) handlers thePath body =
+    (Just thePathVars) ->
+      case maybeBody of
+        (Just body) -> fn (body, thePathVars)
+        Nothing     -> matchRoute handlers $ PostRequest thePath maybeBody
+    Nothing -> matchRoute handlers $ PostRequest thePath maybeBody
+matchPostRoute (POST path (PostBody fn)) handlers thePath maybeBody =
   if path == thePath
-    then fn body
-    else matchRoute handlers $ PostRequest thePath body
+    then case maybeBody of
+           (Just body) -> fn body
+           Nothing     -> matchRoute handlers $ PostRequest thePath maybeBody
+    else matchRoute handlers $ PostRequest thePath maybeBody
 matchPostRoute _ handlers path body = matchRoute handlers $ PostRequest path body
-
-matchEmptyPostRoute :: Route -> [Route] -> Path -> IO Response
-matchEmptyPostRoute (POST pathTemplate (PostJustPathVars fn)) handlers thePath =
-  case pathVars pathTemplate thePath of
-    (Just thePathVars) -> fn thePathVars
-    Nothing            -> matchRoute handlers $ EmptyPostRequest thePath
-matchEmptyPostRoute (POST pathTemplate (PostBodyAndPathVars fn)) handlers thePath =
-  matchRoute handlers $ EmptyPostRequest thePath
-matchEmptyPostRoute (POST path (PostBody fn)) handlers thePath = matchRoute handlers $ EmptyPostRequest thePath
-matchEmptyPostRoute _ handlers path = matchRoute handlers $ EmptyPostRequest path
 
 matchPutRoute :: Route -> [Route] -> Path -> String -> IO Response
 matchPutRoute (PUT pathTemplate (PutJustPathVars fn)) handlers thePath body =

@@ -16,13 +16,13 @@ getRequest handle = do
     (Just (PostBuilder path params contentLength)) -> do
       maybeBody <- getBodyByEmptyLine handle
       case maybeBody of
-        (Just body) -> return $ Just $ PostRequest path body
-        Nothing -> return $ Just $ EmptyPostRequest path
+        (Just body) -> return $ Just $ PostRequest path $ Just body
+        Nothing -> return $ Just $ PostRequest path Nothing
     (Just (NewLinePostBuilder path params)) -> do
       maybeBody <- getBodyByEmptyLine handle
       case maybeBody of
-        (Just body) -> return $ Just $ PostRequest path body
-        Nothing -> return $ Just $ EmptyPostRequest path
+        (Just body) -> return $ Just $ PostRequest path $ Just body
+        Nothing -> return $ Just $ PostRequest path Nothing
     (Just (PutBuilder path params contentLength)) -> do
       maybeBody <- getBodyByEmptyLine handle
       case maybeBody of

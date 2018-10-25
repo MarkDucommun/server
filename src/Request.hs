@@ -2,7 +2,7 @@ module Request
   ( Param
   , Path
   , PathVar
-  , Request (GetRequest, PostRequest, EmptyPostRequest, PutRequest, EmptyPutRequest)
+  , Request (GetRequest, PostRequest, PutRequest, EmptyPutRequest)
   , ParamRequest
   , ParamPathVarRequest
   , BodyPathVarRequest
@@ -25,8 +25,7 @@ data Request
   = GetRequest Path
                [Param]
   | PostRequest Path
-                String
-  | EmptyPostRequest Path
+                (Maybe String)
   | PutRequest Path
                String
   | EmptyPutRequest Path

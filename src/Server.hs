@@ -9,7 +9,7 @@ module Server
   , GetRequestHandler(GetStatic, GetJustParams, GetParamsAndPathVars, GetJustPathVars)
   , PostRequestHandler(PostJustPathVars, PostBody, PostBodyAndPathVars)
   , PutRequestHandler(PutJustPathVars, PutBody, PutBodyAndPathVars)
-  , Request(GetRequest, PostRequest, EmptyPostRequest)
+  , Request(GetRequest, PostRequest, PutRequest)
   ) where
 
 import           Control.Concurrent.Chan
