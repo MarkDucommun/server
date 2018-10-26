@@ -161,7 +161,7 @@ spec = do
         it "can respond to a post with a body" $ do
           startWith $ [(POST "/a" $ JustBody $ \body -> return $ R.OK $ R.Text body)]
           response <- post "localhost" port "/a" $ C.Text "2"
-          response `shouldBe` (C.OK $ C.Text "2\r")
+          response `shouldBe` (C.OK $ C.Text "2")
 
         it "can respond to a post with a body and path vars" $ do
           startWith $ [(POST "/a/{b}" $ BodyAndPathVars $ \(body, vars) ->
@@ -170,7 +170,7 @@ spec = do
                 _ -> return $ R.NOT_FOUND
             )]
           response <- post "localhost" port "/a/2" $ C.Text "1"
-          response `shouldBe` (C.OK $ C.Text "1\r2")
+          response `shouldBe` (C.OK $ C.Text "12")
 
       describe "PUT" $ do
         it "can respond to a put with empty body" $ do
@@ -184,7 +184,7 @@ spec = do
         it "can respond to a put with a body" $ do
           startWith $ [(PUT "/a" $ JustBody $ \body -> return $ R.OK $ R.Text body)]
           response <- put "localhost" port "/a" $ C.Text "2"
-          response `shouldBe` (C.OK $ C.Text "2\r")
+          response `shouldBe` (C.OK $ C.Text "2")
 
         it "can respond to a put with a body and path vars" $ do
           startWith $ [(PUT "/a/{b}" $ BodyAndPathVars $ \(body, vars) ->
@@ -193,7 +193,7 @@ spec = do
                 _ -> return $ R.NOT_FOUND
             )]
           response <- put "localhost" port "/a/2" $ C.Text "1"
-          response `shouldBe` (C.OK $ C.Text "1\r2")
+          response `shouldBe` (C.OK $ C.Text "12")
 
       describe "DELETE" $ do
         it "can respond to a delete with empty body" $ do
@@ -207,7 +207,7 @@ spec = do
         it "can respond to a delete with a body" $ do
           startWith $ [(DELETE "/a" $ JustBody $ \body -> return $ R.OK $ R.Text body)]
           response <- delete "localhost" port "/a" $ C.Text "2"
-          response `shouldBe` (C.OK $ C.Text "2\r")
+          response `shouldBe` (C.OK $ C.Text "2")
 
         it "can respond to a put with a body and path vars" $ do
           startWith $ [(DELETE "/a/{b}" $ BodyAndPathVars $ \(body, vars) ->
@@ -216,7 +216,7 @@ spec = do
                 _ -> return $ R.NOT_FOUND
             )]
           response <- delete "localhost" port "/a/2" $ C.Text "1"
-          response `shouldBe` (C.OK $ C.Text "1\r2")
+          response `shouldBe` (C.OK $ C.Text "12")
 
     describe "formatting response output" $ do
       let serverRespondingWith = \response -> startWith [(GET "/a" $ GetStatic response)]

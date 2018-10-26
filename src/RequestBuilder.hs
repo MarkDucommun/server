@@ -18,17 +18,22 @@ getRequest handle = do
 buildRequest :: Handle -> RequestBuilder -> IO (Maybe Request)
 buildRequest handle (GetBuilder path params) = return $ Just $ GetRequest path params
 buildRequest handle (PostBuilder path contentLength) =
-  buildRequestWithBodyByEmptyLine handle PostRequest path
+  buildRequestWithBody handle PostRequest path contentLength
 buildRequest handle (NewLinePostBuilder path) =
   buildRequestWithBodyByEmptyLine handle PostRequest path
 buildRequest handle (PutBuilder path contentLength) =
-  buildRequestWithBodyByEmptyLine handle PutRequest path
+  buildRequestWithBody handle PutRequest path contentLength
 buildRequest handle (NewLinePutBuilder path) =
   buildRequestWithBodyByEmptyLine handle PutRequest path
 buildRequest handle (DeleteBuilder path contentLength) =
-  buildRequestWithBodyByEmptyLine handle DeleteRequest path
+  buildRequestWithBody handle DeleteRequest path contentLength
 buildRequest handle (NewLineDeleteBuilder path) =
   buildRequestWithBodyByEmptyLine handle DeleteRequest path
+
+buildRequestWithBody :: Handle -> (Path -> Maybe String -> Request) -> Path -> Int -> IO (Maybe Request)
+buildRequestWithBody handle requestType path contentLength = do
+  maybeBody <- getBodyByLength handle contentLength
+  return $ Just $ requestType path maybeBody
 
 buildRequestWithBodyByEmptyLine :: Handle -> (Path -> Maybe String -> Request) -> Path -> IO (Maybe Request)
 buildRequestWithBodyByEmptyLine handle requestType path = do

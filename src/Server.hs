@@ -34,16 +34,20 @@ startSimpleServer channel port requestHandler =
 loop :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
 loop socket channel requestHandler = do
   handle <- acceptConnection socket
-  maybeRequest <- getRequest handle
-  case maybeRequest of
-    (Just request) -> sendResponse handle $ requestHandler request
-    Nothing        -> sendResponse handle $ return malformedRequestResponse
+  handleRequest handle requestHandler
   shouldServerContinue socket channel requestHandler
   where
     acceptConnection :: Socket -> IO Handle
     acceptConnection socket = do
       (handle, _, _) <- accept socket
       return handle
+
+handleRequest ::  Handle -> RequestHandler -> IO ()
+handleRequest handle requestHandler  = do
+  maybeRequest <- getRequest handle
+  case maybeRequest of
+    (Just request) -> sendResponse handle $ requestHandler request
+    Nothing        -> sendResponse handle $ return malformedRequestResponse
 
 shouldServerContinue :: Socket -> (Chan Bool) -> RequestHandler -> IO ()
 shouldServerContinue socket channel handler = do
