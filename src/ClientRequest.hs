@@ -12,7 +12,9 @@ import           System.IO
 import           Utilities
 
 type Host = String
+
 type Path = String
+
 type Method = String
 
 makeRequest :: Handle -> Method -> Host -> PortID -> Path -> [(String, String)] -> Body -> IO ()
@@ -27,40 +29,34 @@ hPutRequest handle (line:lines') = do
 
 constructRequest :: Method -> Host -> PortID -> Path -> [(String, String)] -> Body -> [String]
 constructRequest method host port path headers Empty =
-  [ pathHeader' method path
-  , hostHeader host port
-  , cacheControlHeader
-  , constructHeaders headers
+  [ pathHeader method path
+  , constructHeaders $ (hostHeader host port) : cacheControlHeader : headers
   , emptyLine
-  , emptyLine]
+  , emptyLine
+  ]
 constructRequest method host port path headers (Text body) =
-  [ pathHeader' method path
-  , hostHeader host port
-  , cacheControlHeader
-  , contentLengthHeader body
-  , constructHeaders headers
+  [ pathHeader method path
+  , constructHeaders $ (hostHeader host port) : cacheControlHeader : (contentLengthHeader body) : headers
   , emptyLine
   , body ++ emptyLine
-  , emptyLine]
+  , emptyLine
+  ]
 
-pathHeader :: String -> String
-pathHeader path = pathHeader' "GET" path
+pathHeader :: String -> String -> String
+pathHeader method path = method ++ " " ++ path ++ " HTTP/1.1\r\n"
 
-pathHeader' :: String -> String -> String
-pathHeader' method path = method ++ " " ++ path ++ " HTTP/1.1\r\n"
+hostHeader :: Host -> PortID -> (String, String)
+hostHeader host port = ("Host", host ++ ":" ++ showPort port)
 
-hostHeader :: String -> PortID -> String
-hostHeader host port = "Host: " ++ host ++ ":" ++ showPort port ++ "\r\n"
+cacheControlHeader :: (String, String)
+cacheControlHeader = ("Cache-Control", "no-cache")
+
+contentLengthHeader :: String -> (String, String)
+contentLengthHeader body = ("Content-Length", show $ length body)
 
 constructHeaders :: [(String, String)] -> String
 constructHeaders [] = ""
 constructHeaders ((key, value):remaining) = key ++ ": " ++ value ++ emptyLine ++ (constructHeaders remaining)
-
-cacheControlHeader :: String
-cacheControlHeader = "Cache-Control: no-cache\r\n"
-
-contentLengthHeader :: String -> String
-contentLengthHeader body = "Content-Length: " ++ (show $ length body) ++ "\r\n"
 
 emptyLine :: String
 emptyLine = "\r\n"
