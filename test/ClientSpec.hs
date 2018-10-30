@@ -14,11 +14,18 @@ spec = do
   describe "client" $ do
     let port = PortNumber 8080
     let getClient = get "localhost" port
+    let host = ("localhost", port)
+    let url = (host, "/hello")
+
+    let simpleGet = GET' url []
+    let simplePost = POST' url []
+    let simplePut = PUT' url []
+    let simpleDelete = DELETE' url []
 
     it "sends the correct HTTP request to the socket" $ do
       forkIO $ do
         threadDelay 100
-        getClient "/hello"
+        send simpleGet
         return ()
       withHandleDo port $ \handle -> do
         assertRequestMatches handle $
@@ -34,12 +41,21 @@ spec = do
       readLinesThenServeContent port 4 lines
       getClient `responseShouldBe` (OK $ Text "HELLO")
 
+    it "can send headers" $ do
+      forkIO $ do
+        threadDelay 100
+        send simpleGet
+        return ()
+      withHandleDo port $ \handle -> do
+        assertRequestMatches handle $
+          ["GET /hello HTTP/1.1\r", "Host: localhost:8080\r", "Cache-Control: no-cache\r", "\r"]
+
     describe "POST request" $ do
       describe "Empty body" $ do
         it "does not send a body" $ do
           forkIO $ do
             threadDelay 100
-            post "localhost" port "/hello" Empty
+            send $ simplePost Empty
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $
@@ -49,7 +65,7 @@ spec = do
         it "sends the body along with a content-length header" $ do
           forkIO $ do
             threadDelay 100
-            post "localhost" port "/hello" $ Text "HELLO"
+            send $ simplePost $ Text "HELLO"
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $
@@ -66,7 +82,7 @@ spec = do
         it "does not send a body" $ do
           forkIO $ do
             threadDelay 100
-            put "localhost" port "/hello" Empty
+            send $ simplePut Empty
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $
@@ -76,7 +92,7 @@ spec = do
         it "sends the body along with a content-length header" $ do
           forkIO $ do
             threadDelay 100
-            put "localhost" port "/hello" $ Text "HELLO"
+            send $ simplePut $ Text "HELLO"
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $
@@ -93,7 +109,7 @@ spec = do
         it "does not send a body" $ do
           forkIO $ do
             threadDelay 100
-            delete "localhost" port "/hello" Empty
+            send $ simpleDelete Empty
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $
@@ -103,7 +119,7 @@ spec = do
         it "sends the body along with a content-length header" $ do
           forkIO $ do
             threadDelay 100
-            delete "localhost" port "/hello" $ Text "HELLO"
+            send $ simpleDelete $ Text "HELLO"
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $
