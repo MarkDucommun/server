@@ -44,11 +44,11 @@ spec = do
     it "can send headers" $ do
       forkIO $ do
         threadDelay 100
-        send simpleGet
+        send $ GET' url [("A", "1")]
         return ()
       withHandleDo port $ \handle -> do
         assertRequestMatches handle $
-          ["GET /hello HTTP/1.1\r", "Host: localhost:8080\r", "Cache-Control: no-cache\r", "\r"]
+          ["GET /hello HTTP/1.1\r", "Host: localhost:8080\r", "Cache-Control: no-cache\r", "A: 1\r", "\r"]
 
     describe "POST request" $ do
       describe "Empty body" $ do

@@ -1,6 +1,5 @@
 module ClientRequest
   ( makeRequest
-  , makeRequestWithBody
   , Host
   , Path
   , Method
@@ -16,12 +15,9 @@ type Host = String
 type Path = String
 type Method = String
 
-makeRequest :: Handle -> Host -> PortID -> Path -> IO ()
-makeRequest handle host port path = hPutRequest handle $ constructRequest host port path
-
-makeRequestWithBody :: Handle -> Host -> PortID -> Method -> Path -> Body -> IO ()
-makeRequestWithBody handle host port method path body =
- hPutRequest handle $ constructRequestWithBody host port method path body
+makeRequest :: Handle -> Method -> Host -> PortID -> Path -> [(String, String)] -> Body -> IO ()
+makeRequest handle method host port path headers body =
+  hPutRequest handle $ constructRequest method host port path headers body
 
 hPutRequest :: Handle -> [String] -> IO ()
 hPutRequest handle [] = hFlush handle
@@ -29,25 +25,20 @@ hPutRequest handle (line:lines') = do
   hPutStr handle line
   hPutRequest handle lines'
 
-constructRequest :: String -> PortID -> String -> [String]
-constructRequest host port path =
-  [ pathHeader path
-  , hostHeader host port
-  , cacheControlHeader
-  , emptyLine]
-
-constructRequestWithBody :: Host -> PortID -> Method -> Path -> Body -> [String]
-constructRequestWithBody host port method path Empty =
+constructRequest :: Method -> Host -> PortID -> Path -> [(String, String)] -> Body -> [String]
+constructRequest method host port path headers Empty =
   [ pathHeader' method path
   , hostHeader host port
   , cacheControlHeader
+  , constructHeaders headers
   , emptyLine
   , emptyLine]
-constructRequestWithBody host port method path (Text body) =
+constructRequest method host port path headers (Text body) =
   [ pathHeader' method path
   , hostHeader host port
   , cacheControlHeader
   , contentLengthHeader body
+  , constructHeaders headers
   , emptyLine
   , body ++ emptyLine
   , emptyLine]
@@ -60,6 +51,10 @@ pathHeader' method path = method ++ " " ++ path ++ " HTTP/1.1\r\n"
 
 hostHeader :: String -> PortID -> String
 hostHeader host port = "Host: " ++ host ++ ":" ++ showPort port ++ "\r\n"
+
+constructHeaders :: [(String, String)] -> String
+constructHeaders [] = ""
+constructHeaders ((key, value):remaining) = key ++ ": " ++ value ++ emptyLine ++ (constructHeaders remaining)
 
 cacheControlHeader :: String
 cacheControlHeader = "Cache-Control: no-cache\r\n"
