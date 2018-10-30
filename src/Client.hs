@@ -15,11 +15,7 @@ import           ClientRequest
 import           ClientResponse
 
 get :: Host -> PortID -> Path -> IO Response
-get host port path = withSocketsDo $ do
-  handle <- connectTo host port
-  makeRequest handle host port path
-  response <- handleResponse handle
-  return $ response
+get host port path = client host port "GET" path Empty
 
 post :: Host -> PortID -> Path -> Body -> IO Response
 post host port path body = client host port "POST" path body

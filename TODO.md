@@ -1,5 +1,6 @@
 # TODOs
-* [ ] Write tests that send client requests with Content-Length    
+* [ ] Write tests that send client requests with Content-Length and no new-lines  
+* [ ] Write tests that send client requests with new-lines and no Content-Length  
 * [ ] Audit all `<-` in IO blocks
     * [ ] `main.hs:41`
     * [ ] `Client.hs:19`
