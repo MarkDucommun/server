@@ -25,7 +25,7 @@ spec = do
     it "sends the correct HTTP request to the socket" $ do
       forkIO $ do
         threadDelay 100
-        send simpleGet
+        send' simpleGet
         return ()
       withHandleDo port $ \handle -> do
         assertRequestMatches handle $
@@ -34,23 +34,23 @@ spec = do
     it "reads the response until two empty lines are found" $ do
       let lines = ["HTTP/1.1 200 OK\r\n", "\r\n", "HELLO\r\n", "\r\n"]
       readLinesThenServeContent port 4 lines
-      getClient `responseShouldBe` (OK $ Text "HELLO\r")
+      getClient `responseShouldBe` (OK [] $ Text "HELLO\r")
 
     it "reads the response body content-length chars past the first empty line" $ do
       let lines = ["HTTP/1.1 200 OK\r\n","Content-Length: 5\r\n","\r\n","HELLO"]
       readLinesThenServeContent port 4 lines
-      getClient `responseShouldBe` (OK $ Text "HELLO")
+      getClient `responseShouldBe` (OK [] $ Text "HELLO")
 
     it "can receive headers that are not Content-Length" $ do
       let lines = ["HTTP/1.1 200 OK\r\n","Content-Length: 5\r\n", "Location: blah.org\r\n", "\r\n","HELLO"]
       readLinesThenServeContent port 4 lines
       response <- (send' simpleGet)
-      response `shouldBe` (OK' [("Location", "blah.org")] $ Text "HELLO")
+      response `shouldBe` (OK [("Location", "blah.org")] $ Text "HELLO")
 
     it "can send headers" $ do
       forkIO $ do
         threadDelay 100
-        send $ GET' url [("A", "1")]
+        send' $ GET' url [("A", "1")]
         return ()
       withHandleDo port $ \handle -> do
         assertRequestMatches handle $
@@ -61,7 +61,7 @@ spec = do
         it "does not send a body" $ do
           forkIO $ do
             threadDelay 100
-            send $ simplePost Empty
+            send' $ simplePost Empty
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $
@@ -71,7 +71,7 @@ spec = do
         it "sends the body along with a content-length header" $ do
           forkIO $ do
             threadDelay 100
-            send $ simplePost $ Text "HELLO"
+            send' $ simplePost $ Text "HELLO"
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $
@@ -88,7 +88,7 @@ spec = do
         it "does not send a body" $ do
           forkIO $ do
             threadDelay 100
-            send $ simplePut Empty
+            send' $ simplePut Empty
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $
@@ -98,7 +98,7 @@ spec = do
         it "sends the body along with a content-length header" $ do
           forkIO $ do
             threadDelay 100
-            send $ simplePut $ Text "HELLO"
+            send' $ simplePut $ Text "HELLO"
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $
@@ -115,7 +115,7 @@ spec = do
         it "does not send a body" $ do
           forkIO $ do
             threadDelay 100
-            send $ simpleDelete Empty
+            send' $ simpleDelete Empty
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $
@@ -125,7 +125,7 @@ spec = do
         it "sends the body along with a content-length header" $ do
           forkIO $ do
             threadDelay 100
-            send $ simpleDelete $ Text "HELLO"
+            send' $ simpleDelete $ Text "HELLO"
             return ()
           withHandleDo port $ \handle -> do
             assertRequestMatches handle $
@@ -142,23 +142,23 @@ spec = do
         it "can parse empty responses" $ do
           let lines = ["HTTP/1.1 200 OK\r\n", "Content-Length: 0\r\n", "\r\n"]
           readLinesThenServeContent port 4 lines
-          getClient `responseShouldBe` (OK Empty)
+          getClient `responseShouldBe` (OK [] Empty)
 
         it "can parse responses with a body" $ do
           let lines = ["HTTP/1.1 200 OK\r\n", "Content-Length: 5\r\n", "\r\n", "HELLO"]
           readLinesThenServeContent port 4 lines
-          getClient `responseShouldBe` (OK $ Text "HELLO")
+          getClient `responseShouldBe` (OK [] $ Text "HELLO")
 
       describe "CREATED" $ do
         it "can parse empty responses" $ do
           let lines = ["HTTP/1.1 201 CREATED\r\n", "Content-Length: 0\r\n", "\r\n"]
           readLinesThenServeContent port 4 lines
-          getClient `responseShouldBe` (CREATED Empty)
+          getClient `responseShouldBe` (CREATED [] Empty)
 
         it "can parse responses with a body" $ do
           let lines = ["HTTP/1.1 201 CREATED\r\n", "Content-Length: 5\r\n", "\r\n", "HELLO"]
           readLinesThenServeContent port 4 lines
-          getClient `responseShouldBe` (CREATED $ Text "HELLO")
+          getClient `responseShouldBe` (CREATED [] $ Text "HELLO")
 
       describe "BAD REQUEST" $ do
         it "can parse empty responses" $ do

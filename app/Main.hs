@@ -27,8 +27,8 @@ getTheInternet :: String -> String -> IO R.Response
 getTheInternet url path = do
   response <- get url (PortNumber 80) path
   case response of
-    (C.OK (C.Text body)) -> return $ R.OK $ R.Text $ "OK:\n\n" ++ body
-    (C.OK C.Empty)       -> return $ R.OK $ R.Text $ "OK"
+    (C.OK _ (C.Text body)) -> return $ R.OK $ R.Text $ "OK:\n\n" ++ body
+    (C.OK _ C.Empty)       -> return $ R.OK $ R.Text $ "OK"
     _                    -> return $ R.BAD_REQUEST $ R.Text "BAD"
 
 getFileContents' :: [Param] -> GetResponse

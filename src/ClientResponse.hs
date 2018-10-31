@@ -1,8 +1,6 @@
 module ClientResponse
   ( handleResponse
-  , handleResponse'
   , Response(OK, CREATED, BAD_REQUEST, NOT_FOUND, UNAUTHORIZED)
-  , Response'(OK', CREATED', BAD_REQUEST', NOT_FOUND', UNAUTHORIZED')
   , Body(Empty, Text)
   ) where
 
@@ -11,40 +9,32 @@ import           System.IO
 import           Utilities
 
 data Response
-  = OK Body
-  | CREATED Body
+  = OK [(String, String)]
+        Body
+  | CREATED [(String, String)]
+             Body
   | BAD_REQUEST Body
   | NOT_FOUND
   | UNAUTHORIZED
   deriving (Show, Eq)
 
-data Response'
-  = OK' [(String, String)]
-        Body
-  | CREATED' [(String, String)]
-             Body
-  | BAD_REQUEST' Body
-  | NOT_FOUND'
-  | UNAUTHORIZED'
-  deriving (Show, Eq)
-
-handleResponse' :: Handle -> IO Response'
-handleResponse' handle = do
+handleResponse :: Handle -> IO Response
+handleResponse handle = do
   (headers, body) <- readResponse handle
   hClose handle
   case headers of
-    [] -> return $ BAD_REQUEST' $ Text "No Headers"
+    [] -> return $ BAD_REQUEST $ Text "No Headers"
     (header:_) ->
       case extractStatus header of
         (Just status) ->
           case status of
-            200 -> return $ OK' (parseHeaders headers) $ transformBody body
-            201 -> return $ CREATED' (parseHeaders headers) $ transformBody body
-            400 -> return $ BAD_REQUEST' $ transformBody body
-            401 -> return UNAUTHORIZED'
-            404 -> return NOT_FOUND'
-            _ -> return $ BAD_REQUEST' $ Text $ "Cannot process response status: " ++ (show status)
-        Nothing -> return $ BAD_REQUEST' $ Text "Something went wrong processing the response"
+            200 -> return $ OK (parseHeaders headers) $ transformBody body
+            201 -> return $ CREATED (parseHeaders headers) $ transformBody body
+            400 -> return $ BAD_REQUEST $ transformBody body
+            401 -> return UNAUTHORIZED
+            404 -> return NOT_FOUND
+            _ -> return $ BAD_REQUEST $ Text $ "Cannot process response status: " ++ (show status)
+        Nothing -> return $ BAD_REQUEST $ Text "Something went wrong processing the response"
 
 parseHeaders :: [String] -> [(String, String)]
 parseHeaders [] = []
@@ -59,24 +49,6 @@ parseHeaders (rawHeader:remaining) =
 transformBody :: Maybe String -> Body
 transformBody (Just body) = Text body
 transformBody Nothing     = Empty
-
-handleResponse :: Handle -> IO Response
-handleResponse handle = do
-  (headers, body) <- readResponse handle
-  hClose handle
-  case headers of
-    [] -> return $ BAD_REQUEST $ Text "No Headers"
-    (header:_) ->
-      case extractStatus header of
-        (Just status) ->
-          case status of
-            200 -> return $ OK $ transformBody body
-            201 -> return $ CREATED $ transformBody body
-            400 -> return $ BAD_REQUEST $ transformBody body
-            401 -> return UNAUTHORIZED
-            404 -> return NOT_FOUND
-            _ -> return $ BAD_REQUEST $ Text $ "Cannot process response status: " ++ (show status)
-        Nothing -> return $ BAD_REQUEST $ Text "Something went wrong processing the response"
 
 readResponse :: Handle -> IO ([String], Maybe String)
 readResponse handle = do
