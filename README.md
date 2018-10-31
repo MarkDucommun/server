@@ -46,8 +46,8 @@ I hope you enjoy reading and modifying this as much as I have enjoyed creating i
 ### Backlog
 1. Headers
     * [x] Client request
+    * [x] Client response
     * [ ] Server request
-    * [ ] Client response
     * [ ] Server response
 
 ### Icebox
