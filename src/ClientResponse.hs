@@ -1,12 +1,14 @@
 module ClientResponse
   ( handleResponse
-  , Response (OK, CREATED, BAD_REQUEST, NOT_FOUND, UNAUTHORIZED)
-  , Body (Empty, Text)
+  , handleResponse'
+  , Response(OK, CREATED, BAD_REQUEST, NOT_FOUND, UNAUTHORIZED)
+  , Response'(OK', CREATED', BAD_REQUEST', NOT_FOUND', UNAUTHORIZED')
+  , Body(Empty, Text)
   ) where
 
+import           Body
 import           System.IO
 import           Utilities
-import           Body
 
 data Response
   = OK Body
@@ -16,25 +18,65 @@ data Response
   | UNAUTHORIZED
   deriving (Show, Eq)
 
+data Response'
+  = OK' [(String, String)]
+        Body
+  | CREATED' [(String, String)]
+             Body
+  | BAD_REQUEST' Body
+  | NOT_FOUND'
+  | UNAUTHORIZED'
+  deriving (Show, Eq)
+
+handleResponse' :: Handle -> IO Response'
+handleResponse' handle = do
+  (headers, body) <- readResponse handle
+  hClose handle
+  case headers of
+    [] -> return $ BAD_REQUEST' $ Text "No Headers"
+    (header:_) ->
+      case extractStatus header of
+        (Just status) ->
+          case status of
+            200 -> return $ OK' (parseHeaders headers) $ transformBody body
+            201 -> return $ CREATED' (parseHeaders headers) $ transformBody body
+            400 -> return $ BAD_REQUEST' $ transformBody body
+            401 -> return UNAUTHORIZED'
+            404 -> return NOT_FOUND'
+            _ -> return $ BAD_REQUEST' $ Text $ "Cannot process response status: " ++ (show status)
+        Nothing -> return $ BAD_REQUEST' $ Text "Something went wrong processing the response"
+
+parseHeaders :: [String] -> [(String, String)]
+parseHeaders [] = []
+parseHeaders (rawHeader:remaining) =
+  case split rawHeader ':' of
+    (key:value:[]) ->
+      if key == "Content-Length"
+        then parseHeaders remaining
+        else [(key, trim value)] ++ parseHeaders remaining
+    _ -> parseHeaders remaining
+
+transformBody :: Maybe String -> Body
+transformBody (Just body) = Text body
+transformBody Nothing     = Empty
+
 handleResponse :: Handle -> IO Response
 handleResponse handle = do
   (headers, body) <- readResponse handle
   hClose handle
   case headers of
     [] -> return $ BAD_REQUEST $ Text "No Headers"
-    (header:_) -> case extractStatus header of
-      (Just status) -> case status of
-        200 -> return $ createResponse body OK
-        201 -> return $ createResponse body CREATED
-        400 -> return $ createResponse body BAD_REQUEST
-        401 -> return UNAUTHORIZED
-        404 -> return NOT_FOUND
-        _ -> return $ BAD_REQUEST $ Text $ "Cannot process response status: " ++ (show status)
-      Nothing -> return $ BAD_REQUEST $ Text "Something went wrong processing the response"
-
-createResponse :: Maybe String -> (Body -> Response) -> Response
-createResponse Nothing responseCreator = responseCreator Empty
-createResponse (Just body) responseCreator = responseCreator $ Text body
+    (header:_) ->
+      case extractStatus header of
+        (Just status) ->
+          case status of
+            200 -> return $ OK $ transformBody body
+            201 -> return $ CREATED $ transformBody body
+            400 -> return $ BAD_REQUEST $ transformBody body
+            401 -> return UNAUTHORIZED
+            404 -> return NOT_FOUND
+            _ -> return $ BAD_REQUEST $ Text $ "Cannot process response status: " ++ (show status)
+        Nothing -> return $ BAD_REQUEST $ Text "Something went wrong processing the response"
 
 readResponse :: Handle -> IO ([String], Maybe String)
 readResponse handle = do
@@ -62,14 +104,14 @@ getContentLength [] = Nothing
 getContentLength (header:headers) = do
   case charsAfter "Content-Length: " header of
     (Just chars) -> parseString chars
-    Nothing -> getContentLength headers
+    Nothing      -> getContentLength headers
 
 extractStatus :: String -> Maybe Int
 extractStatus line = do
-   status <- charsAfter "HTTP/1.1 " line
-   case split status ' ' of
-     (x:xs) -> parseString x
-     [] -> Nothing
+  status <- charsAfter "HTTP/1.1 " line
+  case split status ' ' of
+    (x:xs) -> parseString x
+    []     -> Nothing
 
 getBody :: Handle -> IO (Maybe String)
 getBody handle = do
@@ -80,7 +122,7 @@ getBody handle = do
       maybeLines <- getBody handle
       case maybeLines of
         (Just lines) -> return $ Just $ line ++ lines
-        Nothing -> return $ Just $ line
+        Nothing      -> return $ Just $ line
 
 getBodyByLength :: Handle -> Int -> IO (Maybe String)
 getBodyByLength handle 0 = return Nothing
@@ -89,5 +131,4 @@ getBodyByLength handle remainingChars = do
   remaining <- getBodyByLength handle $ remainingChars - 1
   case remaining of
     (Just chars) -> return $ Just $ [char] ++ chars
-    Nothing -> return $ Just $ [char]
-
+    Nothing      -> return $ Just $ [char]

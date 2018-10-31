@@ -33,3 +33,7 @@ spec = do
     describe "when the char to split on are adjacent" $ do
       it "does not append an empty string" $ do
         split "a==a" '=' `shouldBe` ["a", "a"]
+
+  describe "trim" $ do
+    it "doesn't do anything to already trimmed strings" $ do
+      trim "a" `shouldBe` "a"

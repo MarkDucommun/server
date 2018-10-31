@@ -41,6 +41,12 @@ spec = do
       readLinesThenServeContent port 4 lines
       getClient `responseShouldBe` (OK $ Text "HELLO")
 
+    it "can receive headers that are not Content-Length" $ do
+      let lines = ["HTTP/1.1 200 OK\r\n","Content-Length: 5\r\n", "Location: blah.org\r\n", "\r\n","HELLO"]
+      readLinesThenServeContent port 4 lines
+      response <- (send' simpleGet)
+      response `shouldBe` (OK' [("Location", "blah.org")] $ Text "HELLO")
+
     it "can send headers" $ do
       forkIO $ do
         threadDelay 100

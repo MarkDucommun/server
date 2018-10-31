@@ -3,6 +3,7 @@ module Utilities
   , charsAfter
   , parseString
   , split
+  , trim
   ) where
 
 joinString :: [String] -> String
@@ -50,6 +51,19 @@ parseStringInner ('\r':xs) multiplier result = parseStringInner xs multiplier re
 parseStringInner (char:remaining) multiplier result = do
   value <- parseChar char
   parseStringInner remaining (10 * multiplier) (result + (value * multiplier))
+
+trim :: String -> String
+trim [] = []
+trim (' ':remaining) = trim remaining
+trim ('\r':remaining) = trim remaining
+trim remaining = reverse' $ trimEnd $ reverse' remaining
+
+trimEnd :: String -> String
+trimEnd [] = []
+trimEnd (' ':remaining) = trimEnd remaining
+trimEnd ('\r':remaining) = trimEnd remaining
+trimEnd remaining = remaining
+
 
 parseChar :: Char -> Maybe Int
 parseChar '0' = Just 0

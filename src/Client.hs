@@ -4,10 +4,12 @@ module Client
   , put
   , delete
   , Response(OK, CREATED, BAD_REQUEST, NOT_FOUND, UNAUTHORIZED)
+  , Response'(OK', CREATED', BAD_REQUEST', NOT_FOUND', UNAUTHORIZED')
   , Body(Empty, Text)
   , Host
   , Path
   , send
+  , send'
   , Request (GET', POST', PUT', DELETE')
   , Header
   ) where
@@ -35,6 +37,19 @@ client method host port path headers body =
     handle <- connectTo host port
     makeRequest handle method host port path headers body
     handleResponse handle
+
+client' :: Method -> Host -> PortID -> Path -> [Header] -> Body -> IO Response'
+client' method host port path headers body =
+  withSocketsDo $ do
+    handle <- connectTo host port
+    makeRequest handle method host port path headers body
+    handleResponse' handle
+
+send' :: Request -> IO Response'
+send' (GET' ((host, port), path) headers)         = client' "GET" host port path headers Empty
+send' (POST' ((host, port), path) headers body)   = client' "POST" host port path headers body
+send' (PUT' ((host, port), path) headers body)    = client' "PUT" host port path headers body
+send' (DELETE' ((host, port), path) headers body) = client' "DELETE" host port path headers body
 
 send :: Request -> IO Response
 send (GET' ((host, port), path) headers)         = client "GET" host port path headers Empty
