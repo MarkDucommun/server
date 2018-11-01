@@ -51,7 +51,7 @@ spec = do
         writeChan channel False
         forkIO $
           startSimpleServer channel port $
-            \(GetRequest _ params) -> case findParam params "a" of
+            \(GetRequest _ _ params) -> case findParam params "a" of
               (Just value) -> return $ R.OK $ R.Text value
               Nothing -> return R.NOT_FOUND
         "/b?a=c&d=e" `shouldRespond` (C.OK [] $ C.Text "c")

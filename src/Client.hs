@@ -29,18 +29,18 @@ put host port path body = client "PUT" host port path  [] body
 delete :: Host -> PortID -> Path -> Body -> IO Response
 delete host port path body = client "DELETE" host port path [] body
 
+send :: Request -> IO Response
+send (GET' ((host, port), path) headers)         = client "GET" host port path headers Empty
+send (POST' ((host, port), path) headers body)   = client "POST" host port path headers body
+send (PUT' ((host, port), path) headers body)    = client "PUT" host port path headers body
+send (DELETE' ((host, port), path) headers body) = client "DELETE" host port path headers body
+
 client :: Method -> Host -> PortID -> Path -> [Header] -> Body -> IO Response
 client method host port path headers body =
   withSocketsDo $ do
     handle <- connectTo host port
     makeRequest handle method host port path headers body
     handleResponse handle
-
-send :: Request -> IO Response
-send (GET' ((host, port), path) headers)         = client "GET" host port path headers Empty
-send (POST' ((host, port), path) headers body)   = client "POST" host port path headers body
-send (PUT' ((host, port), path) headers body)    = client "PUT" host port path headers body
-send (DELETE' ((host, port), path) headers body) = client "DELETE" host port path headers body
 
 type Host' = (String, PortID)
 

@@ -3,6 +3,7 @@ module RequestBuilder
  ) where
 
 import           Responses
+import           Request
 import           System.IO
 import           Utilities
 import           RouteMatching
@@ -16,50 +17,58 @@ getRequest handle = do
     Nothing -> return Nothing
 
 buildRequest :: Handle -> RequestBuilder -> IO (Maybe Request)
-buildRequest handle (GetBuilder path params) = return $ Just $ GetRequest path params
-buildRequest handle (PostBuilder path contentLength) =
-  buildRequestWithBody handle PostRequest path contentLength
-buildRequest handle (NewLinePostBuilder path) =
-  buildRequestWithBodyByEmptyLine handle PostRequest path
-buildRequest handle (PutBuilder path contentLength) =
-  buildRequestWithBody handle PutRequest path contentLength
-buildRequest handle (NewLinePutBuilder path) =
-  buildRequestWithBodyByEmptyLine handle PutRequest path
-buildRequest handle (DeleteBuilder path contentLength) =
-  buildRequestWithBody handle DeleteRequest path contentLength
-buildRequest handle (NewLineDeleteBuilder path) =
-  buildRequestWithBodyByEmptyLine handle DeleteRequest path
+buildRequest handle (GetBuilder path headers params) = return $ Just $ GetRequest path headers params
+buildRequest handle (PostBuilder path headers contentLength) =
+  buildRequestWithBody handle PostRequest path headers contentLength
+buildRequest handle (NewLinePostBuilder path headers) =
+  buildRequestWithBodyByEmptyLine handle PostRequest path headers
+buildRequest handle (PutBuilder path headers contentLength) =
+  buildRequestWithBody handle PutRequest path headers contentLength
+buildRequest handle (NewLinePutBuilder path headers) =
+  buildRequestWithBodyByEmptyLine handle PutRequest path headers
+buildRequest handle (DeleteBuilder path headers contentLength) =
+  buildRequestWithBody handle DeleteRequest path headers contentLength
+buildRequest handle (NewLineDeleteBuilder path headers) =
+  buildRequestWithBodyByEmptyLine handle DeleteRequest path headers
 
-buildRequestWithBody :: Handle -> (Path -> Maybe String -> Request) -> Path -> Int -> IO (Maybe Request)
-buildRequestWithBody handle requestType path contentLength = do
+buildRequestWithBody :: Handle -> (Path -> [Header] -> Maybe String -> Request) -> Path -> [Header] -> Int -> IO (Maybe Request)
+buildRequestWithBody handle requestType path headers contentLength = do
   maybeBody <- getBodyByLength handle contentLength
-  return $ Just $ requestType path maybeBody
+  return $ Just $ requestType path headers maybeBody
 
-buildRequestWithBodyByEmptyLine :: Handle -> (Path -> Maybe String -> Request) -> Path -> IO (Maybe Request)
-buildRequestWithBodyByEmptyLine handle requestType path = do
+buildRequestWithBodyByEmptyLine :: Handle -> (Path -> [Header] -> Maybe String -> Request) -> Path -> [Header] -> IO (Maybe Request)
+buildRequestWithBodyByEmptyLine handle requestType path headers = do
   maybeBody <- getBodyByEmptyLine handle
-  return $ Just $ requestType path maybeBody
+  return $ Just $ requestType path headers maybeBody
 
 createRequestBuilder :: [String] -> Maybe RequestBuilder
-createRequestBuilder headers = do
-  method <- getMethod headers
-  rawPath <- getRawPath headers
+createRequestBuilder rawHeaders = do
+  method <- getMethod rawHeaders
+  rawPath <- getRawPath rawHeaders
+  let headers = parseHeaders rawHeaders
   (path, params) <- splitPathAndParams rawPath
   case method of
-    "GET" -> Just $ GetBuilder path params
+    "GET" -> Just $ GetBuilder path headers params
     "POST" -> builderForRequestWithBody PostBuilder NewLinePostBuilder headers path
     "PUT" -> builderForRequestWithBody PutBuilder NewLinePutBuilder headers path
     "DELETE" -> builderForRequestWithBody DeleteBuilder NewLineDeleteBuilder headers path
     _ -> Nothing
 
+parseHeaders :: [String] -> [Header]
+parseHeaders [] = []
+parseHeaders (rawHeader:remaining) =
+  case split rawHeader ':' of
+    (key:value:[]) -> [(key, trim value)] ++ parseHeaders remaining
+    _ -> parseHeaders remaining
+
 builderForRequestWithBody
-  :: (Path -> Int -> RequestBuilder)
-  -> (Path -> RequestBuilder)
-  -> [String] -> Path -> Maybe RequestBuilder
+  :: (Path -> [Header] -> Int -> RequestBuilder)
+  -> (Path -> [Header] -> RequestBuilder)
+  -> [Header] -> Path -> Maybe RequestBuilder
 builderForRequestWithBody builder newLineBuilder headers path =
   Just $ case getContentLength headers of
-    (Just contentLength) -> builder path contentLength
-    Nothing -> newLineBuilder path
+    (Just contentLength) -> builder path headers contentLength
+    Nothing -> newLineBuilder path headers
 
 getRawPath :: [String] -> Maybe String
 getRawPath [] = Nothing
@@ -68,16 +77,23 @@ getRawPath (header:_) =
     (_:path:_) -> Just path
     _ -> Nothing
 
-getContentLength :: [String] -> Maybe Int
+getContentLength :: [Header] -> Maybe Int
 getContentLength [] = Nothing
 getContentLength (header:headers) = do
-  case charsAfter "Content-Length: " header of
-    (Just chars) -> parseString chars
-    Nothing -> getContentLength headers
+  contentLength <- findKey headers "Content-Length"
+  parseString contentLength
+
+findKey :: [Header] -> String -> Maybe String
+findKey [] _ = Nothing
+findKey ((key, value):remaining) keyToMatch =
+  if key == keyToMatch
+  then Just value
+  else findKey remaining keyToMatch
 
 getBodyByLength :: Handle -> Int -> IO (Maybe String)
 getBodyByLength handle 0 = return Nothing
 getBodyByLength handle remainingChars = do
+  putStrLn "FROM LENGTH"
   char <- hGetChar handle
   remaining <- getBodyByLength handle $ remainingChars - 1
   case remaining of
@@ -86,6 +102,7 @@ getBodyByLength handle remainingChars = do
 
 getBodyByEmptyLine :: Handle -> IO (Maybe String)
 getBodyByEmptyLine handle = do
+  putStrLn "FROM EMPTY"
   line <- hGetLine handle
   case line of
     "\r" -> return Nothing
@@ -114,10 +131,10 @@ readHeaders handle = do
       return $ [line] ++ remaining
 
 data RequestBuilder
-  = GetBuilder Path [Param]
-  | PostBuilder Path Int
-  | NewLinePostBuilder Path
-  | PutBuilder Path Int
-  | NewLinePutBuilder Path
-  | DeleteBuilder Path Int
-  | NewLineDeleteBuilder Path
+  = GetBuilder Path [Header] [Param]
+  | PostBuilder Path [Header] Int
+  | NewLinePostBuilder Path [Header]
+  | PutBuilder Path [Header] Int
+  | NewLinePutBuilder Path [Header]
+  | DeleteBuilder Path [Header] Int
+  | NewLineDeleteBuilder Path [Header]
