@@ -47,7 +47,7 @@ I hope you enjoy reading and modifying this as much as I have enjoyed creating i
 1. Headers
     * [x] Client request
     * [x] Client response
-    * [ ] Server request
+    * [x] Server request
     * [ ] Server response
 
 ### Icebox
@@ -55,4 +55,5 @@ I hope you enjoy reading and modifying this as much as I have enjoyed creating i
 1. Lightweight document store
 1. JSON parser
 1. HTML templating DSL
+1. Route matching based on passed params or headers
 1. HTTPS

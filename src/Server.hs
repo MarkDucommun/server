@@ -6,8 +6,8 @@ module Server
   , PortNumber
   , GetResponse(Pure, Impure)
   , Route(GET, POST, PUT, DELETE)
-  , GetRequestHandler(GetStatic, GetJustParams, GetParamsAndPathVars, GetJustPathVars)
-  , RequestWithBodyHandler(JustPathVars, JustBody, BodyAndPathVars)
+  , GetRequestHandler (GetJustParams, GetParamsHeaders, GetParamsAndPathVars, GetParamsPathVarsHeaders, GetJustPathVars, GetPathVarsHeaders, GetStatic)
+  , RequestWithBodyHandler(JustPathVars, JustBody, BodyAndPathVars, PathVarsHeaders, BodyPathVarsHeaders, BodyHeaders)
   , Request(GetRequest, PostRequest, PutRequest, DeleteRequest)
   ) where
 

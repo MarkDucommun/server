@@ -93,7 +93,6 @@ findKey ((key, value):remaining) keyToMatch =
 getBodyByLength :: Handle -> Int -> IO (Maybe String)
 getBodyByLength handle 0 = return Nothing
 getBodyByLength handle remainingChars = do
-  putStrLn "FROM LENGTH"
   char <- hGetChar handle
   remaining <- getBodyByLength handle $ remainingChars - 1
   case remaining of
@@ -102,7 +101,6 @@ getBodyByLength handle remainingChars = do
 
 getBodyByEmptyLine :: Handle -> IO (Maybe String)
 getBodyByEmptyLine handle = do
-  putStrLn "FROM EMPTY"
   line <- hGetLine handle
   case line of
     "\r" -> return Nothing

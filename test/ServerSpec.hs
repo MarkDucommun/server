@@ -14,6 +14,7 @@ import           System.IO
 import           Test.Hspec
 
 port = PortNumber 8080
+host = ("localhost", port)
 
 spec :: Spec
 spec = do
@@ -85,6 +86,61 @@ spec = do
       it "does not match for path variables if the request handler does not request path variables" $ do
         startWith [(GET "/b/{a}" $ GetJustParams $ \_ -> Pure R.NOT_FOUND)]
         "/b/1" `shouldRespond` C.NOT_FOUND
+
+    describe "headers" $ do
+      it "can pass params and headers to a GET request handler" $ do
+        startWith [(GET "/b" $ GetParamsHeaders $ \(_, headers) ->
+          case findParam headers "A" of
+            (Just header) -> Pure $ R.OK $ R.Text header
+            Nothing -> Pure $ R.NOT_FOUND
+          )]
+        response <- send $ GET' (host, "/b") [("A", "1")]
+        response `shouldBe` (C.OK [] $ C.Text "1")
+
+      it "can pass pathvars and headers to a GET request handler" $ do
+        startWith [(GET "/b/{c}" $ GetPathVarsHeaders $ \(_, headers) ->
+          case findParam headers "A" of
+            (Just header) -> Pure $ R.OK $ R.Text header
+            Nothing -> Pure $ R.NOT_FOUND
+          )]
+        response <- send $ GET' (host, "/b/2") [("A", "1")]
+        response `shouldBe` (C.OK [] $ C.Text "1")
+
+      it "can pass params pathvars and headers to a GET request handler" $ do
+        startWith [(GET "/b/{c}" $ GetParamsPathVarsHeaders $ \(_, _, headers) ->
+          case findParam headers "A" of
+            (Just header) -> Pure $ R.OK $ R.Text header
+            Nothing -> Pure $ R.NOT_FOUND
+          )]
+        response <- send $ GET' (host, "/b/2?d=3") [("A", "1")]
+        response `shouldBe` (C.OK [] $ C.Text "1")
+
+      it "can pass headers and a body to a request with body handler" $ do
+        startWith [(POST "/b" $ BodyHeaders $ \( _, headers) ->
+          case findParam headers "A" of
+            (Just header) -> return $ R.OK $ R.Text header
+            Nothing -> return $ R.NOT_FOUND
+          )]
+        response <- send $ POST' (host, "/b") [("A", "1")] $ C.Text "c"
+        response `shouldBe` (C.OK [] $ C.Text "1")
+
+      it "can pass headers and a pathvars to a request with body handler" $ do
+        startWith [(POST "/b/{c}" $ PathVarsHeaders $ \( _, headers) ->
+          case findParam headers "A" of
+            (Just header) -> return $ R.OK $ R.Text header
+            Nothing -> return $ R.NOT_FOUND
+          )]
+        response <- send $ POST' (host, "/b/2") [("A", "1")] C.Empty
+        response `shouldBe` (C.OK [] $ C.Text "1")
+
+      it "can pass headers body and pathvars to a request with body handler" $ do
+        startWith [(POST "/b/{c}" $ BodyPathVarsHeaders $ \(_, _, headers) ->
+          case findParam headers "A" of
+            (Just header) -> return $ R.OK $ R.Text header
+            Nothing -> return $ R.NOT_FOUND
+          )]
+        response <- send $ POST' (host, "/b/2") [("A", "1")] $ C.Text "c"
+        response `shouldBe` (C.OK [] $ C.Text "1")
 
     describe "dealing with IO in Request Handlers" $ do
       it "can read a file and return it" $ do
