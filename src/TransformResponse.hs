@@ -20,6 +20,17 @@ transformResponse (OK headers Empty) =
   , contentLengthZero
   , joinHeaders headers
   , endLine]
+transformResponse (CREATED headers (Text body)) =
+  [ statusLine 201
+  , contentLength $ length body
+  , joinHeaders headers
+  , endLine
+  , body]
+transformResponse (CREATED headers Empty) =
+  [ statusLine 201
+  , contentLengthZero
+  , joinHeaders headers
+  , endLine]
 transformResponse (BAD_REQUEST Empty) =
   [ statusLine 400
   , contentLengthZero

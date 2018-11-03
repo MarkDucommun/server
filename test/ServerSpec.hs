@@ -274,26 +274,25 @@ spec = do
           response <- delete "localhost" port "/a/2" $ C.Text "1"
           response `shouldBe` (C.OK [] $ C.Text "12")
 
-    describe "printing headers" $ do
-      it "OK with empty body" $ do
-        startWith $ [(POST "/a/{b}" $ JustPathVars $ \_ -> return $ R.OK [("b", "1")] R.Empty)]
-        "/a/3" `postShouldRespond` (C.OK [("b", "1")] C.Empty)
-
-      it "OK with a body" $ do
-        startWith $ [(POST "/a/{b}" $ JustPathVars $ \_ -> return $ R.OK [("b", "1")] $ R.Text "a")]
-        "/a/3" `postShouldRespond` (C.OK [("b", "1")] $ C.Text "a")
-
     describe "formatting response output" $ do
       let serverRespondingWith = \response -> startWith [(GET "/a" $ GetStatic response)]
       let shouldProduce = \response -> "/a" `shouldRespond` response
 
       it "OK empty" $ do
-        serverRespondingWith $ R.OK [] R.Empty
-        shouldProduce $ C.OK [] $ C.Empty
+        serverRespondingWith $ R.OK [("a", "1")] R.Empty
+        shouldProduce $ C.OK [("a", "1")] $ C.Empty
 
       it "OK Text" $ do
-        serverRespondingWith $ R.OK [] $ R.Text "Some text"
-        shouldProduce $ C.OK [] $ C.Text "Some text"
+        serverRespondingWith $ R.OK [("a", "1")] $ R.Text "Some text"
+        shouldProduce $ C.OK [("a", "1")] $ C.Text "Some text"
+
+      it "CREATED empty" $ do
+        serverRespondingWith $ R.CREATED [("a", "1")] R.Empty
+        shouldProduce $ C.CREATED [("a", "1")] $ C.Empty
+
+      it "CREATED Text" $ do
+        serverRespondingWith $ R.CREATED [("a", "1")] $ R.Text "Some text"
+        shouldProduce $ C.CREATED [("a", "1")] $ C.Text "Some text"
 
       it "NOT FOUND" $ do
         serverRespondingWith $ R.NOT_FOUND
