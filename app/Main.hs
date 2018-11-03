@@ -26,8 +26,8 @@ getTheInternet :: String -> String -> IO R.Response
 getTheInternet url path = do
   response <- get url (PortNumber 80) path
   case response of
-    (C.OK _ (C.Text body)) -> return $ R.OK $ R.Text $ "OK:\n\n" ++ body
-    (C.OK _ C.Empty)       -> return $ R.OK $ R.Text $ "OK"
+    (C.OK _ (C.Text body)) -> return $ R.OK [] $ R.Text $ "OK:\n\n" ++ body
+    (C.OK _ C.Empty)       -> return $ R.OK [] $ R.Text $ "OK"
     _                      -> return $ R.BAD_REQUEST $ R.Text "BAD"
 
 getFileContents' :: [Param] -> GetResponse
@@ -40,7 +40,7 @@ getFileContents' params =
 getFileContents :: String -> IO R.Response
 getFileContents path = do
   contents <- readFile path -- TODO handle file not found with a try?
-  return $ R.OK $ R.Text $ "OK:\n\n" ++ contents
+  return $ R.OK [] $ R.Text $ "OK:\n\n" ++ contents
 
 getUrlAndPath :: [Param] -> Maybe (String, String)
 getUrlAndPath params = do

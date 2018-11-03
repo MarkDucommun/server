@@ -9,14 +9,16 @@ transformResponse NOT_FOUND =
   [ statusLine 404
   , contentLengthZero
   , endLine]
-transformResponse (OK (Text body)) =
+transformResponse (OK headers (Text body)) =
   [ statusLine 200
   , contentLength $ length body
+  , joinHeaders headers
   , endLine
   , body]
-transformResponse (OK Empty) =
+transformResponse (OK headers Empty) =
   [ statusLine 200
   , contentLengthZero
+  , joinHeaders headers
   , endLine]
 transformResponse (BAD_REQUEST Empty) =
   [ statusLine 400
@@ -34,6 +36,10 @@ transformResponse (UNAUTHORIZED) =
 
 http = "HTTP/1.1 "
 endLine = "\r\n"
+
+joinHeaders :: [(String, String)] -> String
+joinHeaders [] = ""
+joinHeaders ((key, value):remaining) = key ++ ": " ++ value ++ "\r\n" ++ joinHeaders remaining
 
 statusLine :: Int -> String
 statusLine 200 = http ++ "200 OK" ++ endLine

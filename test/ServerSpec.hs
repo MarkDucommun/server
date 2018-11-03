@@ -28,16 +28,16 @@ spec = do
     describe "path matching" $ do
       it "can respond to different requests to different paths" $ do
         channel <- startAndContinue
-          [ (GET "/a" $ GetStatic $ R.OK $ R.Text "jam")
-          , (GET "/b" $ GetStatic $ R.OK $ R.Text "honey")]
+          [ (GET "/a" $ GetStatic $ R.OK [] $ R.Text "jam")
+          , (GET "/b" $ GetStatic $ R.OK [] $ R.Text "honey")]
         stopServer channel
         "/a" `shouldRespond` (C.OK [] $ C.Text "jam")
         "/b" `shouldRespond` (C.OK [] $ C.Text "honey")
 
       it "can respond to different requests with the same path but different methods" $ do
         channel <- startAndContinue
-          [ (GET "/a" $ GetStatic $ R.OK $ R.Text "jam")
-          , (POST "/a" $ JustPathVars $ \_ -> return $ R.OK $ R.Text "honey")]
+          [ (GET "/a" $ GetStatic $ R.OK [] $ R.Text "jam")
+          , (POST "/a" $ JustPathVars $ \_ -> return $ R.OK [] $ R.Text "honey")]
         stopServer channel
         "/a" `shouldRespond` (C.OK [] $ C.Text "jam")
         "/a" `postShouldRespond` (C.OK [] $ C.Text "honey")
@@ -53,24 +53,24 @@ spec = do
         forkIO $
           startSimpleServer channel port $
             \(GetRequest _ _ params) -> case findParam params "a" of
-              (Just value) -> return $ R.OK $ R.Text value
+              (Just value) -> return $ R.OK [] $ R.Text value
               Nothing -> return R.NOT_FOUND
         "/b?a=c&d=e" `shouldRespond` (C.OK [] $ C.Text "c")
 
       it "can handle routes with params" $ do
         startWith
           [ (GET "/b" $ GetJustParams $
-            \params -> notFoundOr $ findParam params "a" >>= \value -> Just $ Pure $ R.OK $ R.Text value) ]
+            \params -> notFoundOr $ findParam params "a" >>= \value -> Just $ Pure $ R.OK [] $ R.Text value) ]
         "/b?a=c&d=e" `shouldRespond` (C.OK [] $ C.Text "c")
 
       it "rejects malformed query params" $ do
         startWith
           [ (GET "/b" $ GetJustParams $
-            \params -> notFoundOr $ findParam params "d" >>= \value -> Just $ Pure $ R.OK $ R.Text value) ]
+            \params -> notFoundOr $ findParam params "d" >>= \value -> Just $ Pure $ R.OK [] $ R.Text value) ]
         "/b?a=c&d=" `shouldRespond` (C.BAD_REQUEST $ C.Text "Malformed request path or parameters")
 
       it "does not reject no query params" $ do -- TODO is this actually appropriate? maybe do not respond in this case
-        startWith [(GET "/b" $ GetJustParams $ \_ -> Pure $ R.OK R.Empty)]
+        startWith [(GET "/b" $ GetJustParams $ \_ -> Pure $ R.OK [] R.Empty)]
         "/b?" `shouldRespond` (C.OK [] C.Empty)
 
     describe "path variables" $ do
@@ -78,7 +78,7 @@ spec = do
         startWith [(GET "/b/{a}" $ GetParamsAndPathVars $ \request ->
           case request of
             (_, pathVars) -> case findParam pathVars "a" of
-               (Just value) -> Pure $ R.OK $ R.Text value
+               (Just value) -> Pure $ R.OK [] $ R.Text value
                Nothing      -> Pure $ R.NOT_FOUND
           )]
         "/b/1" `shouldRespond` (C.OK [] $ C.Text "1")
@@ -91,7 +91,7 @@ spec = do
       it "can pass params and headers to a GET request handler" $ do
         startWith [(GET "/b" $ GetParamsHeaders $ \(_, headers) ->
           case findParam headers "A" of
-            (Just header) -> Pure $ R.OK $ R.Text header
+            (Just header) -> Pure $ R.OK [] $ R.Text header
             Nothing -> Pure $ R.NOT_FOUND
           )]
         response <- send $ GET' (host, "/b") [("A", "1")]
@@ -100,7 +100,7 @@ spec = do
       it "can pass pathvars and headers to a GET request handler" $ do
         startWith [(GET "/b/{c}" $ GetPathVarsHeaders $ \(_, headers) ->
           case findParam headers "A" of
-            (Just header) -> Pure $ R.OK $ R.Text header
+            (Just header) -> Pure $ R.OK [] $ R.Text header
             Nothing -> Pure $ R.NOT_FOUND
           )]
         response <- send $ GET' (host, "/b/2") [("A", "1")]
@@ -109,7 +109,7 @@ spec = do
       it "can pass params pathvars and headers to a GET request handler" $ do
         startWith [(GET "/b/{c}" $ GetParamsPathVarsHeaders $ \(_, _, headers) ->
           case findParam headers "A" of
-            (Just header) -> Pure $ R.OK $ R.Text header
+            (Just header) -> Pure $ R.OK [] $ R.Text header
             Nothing -> Pure $ R.NOT_FOUND
           )]
         response <- send $ GET' (host, "/b/2?d=3") [("A", "1")]
@@ -118,7 +118,7 @@ spec = do
       it "can pass headers and a body to a request with body handler" $ do
         startWith [(POST "/b" $ BodyHeaders $ \( _, headers) ->
           case findParam headers "A" of
-            (Just header) -> return $ R.OK $ R.Text header
+            (Just header) -> return $ R.OK [] $ R.Text header
             Nothing -> return $ R.NOT_FOUND
           )]
         response <- send $ POST' (host, "/b") [("A", "1")] $ C.Text "c"
@@ -127,7 +127,7 @@ spec = do
       it "can pass headers and a pathvars to a request with body handler" $ do
         startWith [(POST "/b/{c}" $ PathVarsHeaders $ \( _, headers) ->
           case findParam headers "A" of
-            (Just header) -> return $ R.OK $ R.Text header
+            (Just header) -> return $ R.OK [] $ R.Text header
             Nothing -> return $ R.NOT_FOUND
           )]
         response <- send $ POST' (host, "/b/2") [("A", "1")] C.Empty
@@ -136,7 +136,7 @@ spec = do
       it "can pass headers body and pathvars to a request with body handler" $ do
         startWith [(POST "/b/{c}" $ BodyPathVarsHeaders $ \(_, _, headers) ->
           case findParam headers "A" of
-            (Just header) -> return $ R.OK $ R.Text header
+            (Just header) -> return $ R.OK [] $ R.Text header
             Nothing -> return $ R.NOT_FOUND
           )]
         response <- send $ POST' (host, "/b/2") [("A", "1")] $ C.Text "c"
@@ -151,7 +151,7 @@ spec = do
             fileContents <- try $ readFile "/Users/markducommun/server/test-assets/test.txt" :: IO (Either IOError String) -- TODO sad, fix this
             case fileContents of
               Left _ -> return $ R.NOT_FOUND
-              Right fileStuff -> return $ R.OK $ R.Text fileStuff
+              Right fileStuff -> return $ R.OK [] $ R.Text fileStuff
         "/" `shouldRespond` (C.OK [] $ C.Text "hello")
 
       it "can use route handlers that are capable of handling IO for Just Params" $ do
@@ -161,7 +161,7 @@ spec = do
             fileContents <- try $ readFile "/Users/markducommun/server/test-assets/test.txt" :: IO (Either IOError String) -- TODO sad, fix this
             case fileContents of
                Left _ ->  return $ R.NOT_FOUND
-               Right fileStuff -> return $ R.OK $ R.Text fileStuff )]
+               Right fileStuff -> return $ R.OK [] $ R.Text fileStuff )]
         "/a" `shouldRespond` (C.OK [] $ C.Text "hello")
 
       it "can use route handlers that are capable of handling IO for Params and Path Vars" $ do
@@ -171,19 +171,19 @@ spec = do
             fileContents <- try $ readFile "/Users/markducommun/server/test-assets/test.txt" :: IO (Either IOError String) -- TODO sad, fix this
             case fileContents of
                Left _ ->  return $ R.NOT_FOUND
-               Right fileStuff -> return $ R.OK $ R.Text fileStuff )]
+               Right fileStuff -> return $ R.OK [] $ R.Text fileStuff )]
         "/a" `shouldRespond` (C.OK [] $ C.Text "hello")
 
     describe "request types" $ do
       describe "GET" $ do
         it "can respond with a static response" $ do
-          startWith $ [(GET "/a" $ GetStatic $ R.OK $ R.Text "2")]
+          startWith $ [(GET "/a" $ GetStatic $ R.OK [] $ R.Text "2")]
           "/a" `shouldRespond` (C.OK [] $ C.Text "2")
 
         it "can handle params" $ do
           startWith $ [(GET "/a" $ GetJustParams $ \params ->
             case findParam params "b" of
-              (Just param) -> Pure $ R.OK $ R.Text param
+              (Just param) -> Pure $ R.OK [] $ R.Text param
               _ -> Pure $ R.NOT_FOUND
             )]
           "/a?b=1" `shouldRespond` (C.OK [] $ C.Text "1")
@@ -191,7 +191,7 @@ spec = do
         it "can handle path vars" $ do
           startWith $ [(GET "/a/{b}" $ GetJustPathVars $ \pathVars ->
             case findParam pathVars "b" of
-              (Just pathVar) -> Pure $ R.OK $ R.Text pathVar
+              (Just pathVar) -> Pure $ R.OK [] $ R.Text pathVar
               _ -> Pure $ R.NOT_FOUND
             )]
           "/a/1" `shouldRespond` (C.OK [] $ C.Text "1")
@@ -200,7 +200,7 @@ spec = do
           startWith $ [(GET "/a/{c}" $ GetParamsAndPathVars $ \(params, pathVars) ->
             case findParam params "b" of
               (Just param) -> case findParam pathVars "c" of
-                 (Just var) -> Pure $ R.OK $ R.Text $ param ++ var
+                 (Just var) -> Pure $ R.OK [] $ R.Text $ param ++ var
               _ -> Pure $ R.NOT_FOUND
             )]
           "/a/2?b=1" `shouldRespond` (C.OK [] $ C.Text "12")
@@ -209,20 +209,20 @@ spec = do
         it "can respond to a post with empty body" $ do
           startWith $ [(POST "/a/{b}" $ JustPathVars $ \vars ->
             case findParam vars "b" of
-              (Just var) -> return $ R.OK $ R.Text var
+              (Just var) -> return $ R.OK [] $ R.Text var
               _ -> return $ R.NOT_FOUND
             )]
           "/a/2" `postShouldRespond` (C.OK [] $ C.Text "2")
 
         it "can respond to a post with a body" $ do
-          startWith $ [(POST "/a" $ JustBody $ \body -> return $ R.OK $ R.Text body)]
+          startWith $ [(POST "/a" $ JustBody $ \body -> return $ R.OK [] $ R.Text body)]
           response <- post "localhost" port "/a" $ C.Text "2"
           response `shouldBe` (C.OK [] $ C.Text "2")
 
         it "can respond to a post with a body and path vars" $ do
           startWith $ [(POST "/a/{b}" $ BodyAndPathVars $ \(body, vars) ->
             case findParam vars "b" of
-                (Just var) -> return $ R.OK $ R.Text $ body ++ var
+                (Just var) -> return $ R.OK [] $ R.Text $ body ++ var
                 _ -> return $ R.NOT_FOUND
             )]
           response <- post "localhost" port "/a/2" $ C.Text "1"
@@ -232,20 +232,20 @@ spec = do
         it "can respond to a put with empty body" $ do
           startWith $ [(PUT "/a/{b}" $ JustPathVars $ \vars ->
             case findParam vars "b" of
-              (Just var) -> return $ R.OK $ R.Text var
+              (Just var) -> return $ R.OK [] $ R.Text var
               _ -> return $ R.NOT_FOUND
             )]
           "/a/2" `putShouldRespond` (C.OK [] $ C.Text "2")
 
         it "can respond to a put with a body" $ do
-          startWith $ [(PUT "/a" $ JustBody $ \body -> return $ R.OK $ R.Text body)]
+          startWith $ [(PUT "/a" $ JustBody $ \body -> return $ R.OK [] $ R.Text body)]
           response <- put "localhost" port "/a" $ C.Text "2"
           response `shouldBe` (C.OK [] $ C.Text "2")
 
         it "can respond to a put with a body and path vars" $ do
           startWith $ [(PUT "/a/{b}" $ BodyAndPathVars $ \(body, vars) ->
             case findParam vars "b" of
-                (Just var) -> return $ R.OK $ R.Text $ body ++ var
+                (Just var) -> return $ R.OK [] $ R.Text $ body ++ var
                 _ -> return $ R.NOT_FOUND
             )]
           response <- put "localhost" port "/a/2" $ C.Text "1"
@@ -255,35 +255,44 @@ spec = do
         it "can respond to a delete with empty body" $ do
           startWith $ [(DELETE "/a/{b}" $ JustPathVars $ \vars ->
             case findParam vars "b" of
-              (Just var) -> return $ R.OK $ R.Text var
+              (Just var) -> return $ R.OK [] $ R.Text var
               _ -> return $ R.NOT_FOUND
             )]
           "/a/2" `deleteShouldRespond` (C.OK [] $ C.Text "2")
 
         it "can respond to a delete with a body" $ do
-          startWith $ [(DELETE "/a" $ JustBody $ \body -> return $ R.OK $ R.Text body)]
+          startWith $ [(DELETE "/a" $ JustBody $ \body -> return $ R.OK [] $ R.Text body)]
           response <- delete "localhost" port "/a" $ C.Text "2"
           response `shouldBe` (C.OK [] $ C.Text "2")
 
         it "can respond to a put with a body and path vars" $ do
           startWith $ [(DELETE "/a/{b}" $ BodyAndPathVars $ \(body, vars) ->
             case findParam vars "b" of
-                (Just var) -> return $ R.OK $ R.Text $ body ++ var
+                (Just var) -> return $ R.OK [] $ R.Text $ body ++ var
                 _ -> return $ R.NOT_FOUND
             )]
           response <- delete "localhost" port "/a/2" $ C.Text "1"
           response `shouldBe` (C.OK [] $ C.Text "12")
+
+    describe "printing headers" $ do
+      it "OK with empty body" $ do
+        startWith $ [(POST "/a/{b}" $ JustPathVars $ \_ -> return $ R.OK [("b", "1")] R.Empty)]
+        "/a/3" `postShouldRespond` (C.OK [("b", "1")] C.Empty)
+
+      it "OK with a body" $ do
+        startWith $ [(POST "/a/{b}" $ JustPathVars $ \_ -> return $ R.OK [("b", "1")] $ R.Text "a")]
+        "/a/3" `postShouldRespond` (C.OK [("b", "1")] $ C.Text "a")
 
     describe "formatting response output" $ do
       let serverRespondingWith = \response -> startWith [(GET "/a" $ GetStatic response)]
       let shouldProduce = \response -> "/a" `shouldRespond` response
 
       it "OK empty" $ do
-        serverRespondingWith $ R.OK R.Empty
+        serverRespondingWith $ R.OK [] R.Empty
         shouldProduce $ C.OK [] $ C.Empty
 
       it "OK Text" $ do
-        serverRespondingWith $ R.OK $ R.Text "Some text"
+        serverRespondingWith $ R.OK [] $ R.Text "Some text"
         shouldProduce $ C.OK [] $ C.Text "Some text"
 
       it "NOT FOUND" $ do
@@ -301,7 +310,6 @@ spec = do
       it "UNAUTHORIZED" $ do
         serverRespondingWith $ R.UNAUTHORIZED
         shouldProduce $ C.UNAUTHORIZED
-
 
 startWith :: [Route] -> IO ()
 startWith handlers = do

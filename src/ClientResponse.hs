@@ -9,14 +9,16 @@ import           System.IO
 import           Utilities
 
 data Response
-  = OK [(String, String)]
+  = OK [Header]
         Body
-  | CREATED [(String, String)]
+  | CREATED [Header]
              Body
   | BAD_REQUEST Body
   | NOT_FOUND
   | UNAUTHORIZED
   deriving (Show, Eq)
+
+type Header = (String, String)
 
 handleResponse :: Handle -> IO Response
 handleResponse handle = do

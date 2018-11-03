@@ -42,13 +42,13 @@ I hope you enjoy reading and modifying this as much as I have enjoyed creating i
     * [x] POST
     * [x] PUT
     * [x] DELETE
-
-### Backlog
 1. Headers
     * [x] Client request
     * [x] Client response
     * [x] Server request
-    * [ ] Server response
+    * [x] Server response
+
+### Backlog
 
 ### Icebox
 1. Functional dependency injection
