@@ -1,7 +1,7 @@
 module JsonParser
   ( parse
-  , parseArray
-  , JsonNode (StringNode, IntNode, DoubleNode, ObjectNode, ArrayNode, NullNode)
+  , findKey
+  , JsonNode (StringNode, IntNode, ObjectNode, ArrayNode, NullNode)
   ) where
 
 import Utilities
@@ -9,11 +9,18 @@ import Utilities
 data JsonNode
   = StringNode String
   | IntNode Int
-  | DoubleNode Double
   | ObjectNode [(String, JsonNode)]
   | ArrayNode [JsonNode]
   | NullNode
   deriving (Show, Eq)
+
+findKey :: JsonNode -> String -> Maybe JsonNode
+findKey (ObjectNode []) _ = Nothing
+findKey (ObjectNode ((aKey, value):remaining)) key = do
+  if aKey == key
+  then Just value
+  else findKey (ObjectNode remaining) key
+findKey _ _ = Nothing
 
 parse :: String -> Maybe JsonNode
 parse (' ':remaining) = parse remaining
@@ -30,7 +37,11 @@ parse ('[':remaining) = do
   rawArrayValues <- parseArray remaining
   objects <- parseRawArrayValues rawArrayValues
   return $ ArrayNode objects
-parse _ = Nothing
+parse string = do
+  let trimmed = trim string
+  if trimmed == "null"
+  then Just NullNode
+  else parseString trimmed >>= \int -> Just $ IntNode int
 
 parseRawKeyValues :: [String] -> Maybe [(String, JsonNode)]
 parseRawKeyValues [] = Just []
@@ -74,6 +85,10 @@ parseObject string = do
 parseRawArray :: String -> ParseState -> Maybe (String, String)
 parseRawArray [] Closed = Just ("", "")
 parseRawArray [] (Open _) = Nothing
+parseRawArray (' ':remaining) stack = parseRawArray remaining stack
+parseRawArray ('\r':remaining) stack = parseRawArray remaining stack
+parseRawArray ('\t':remaining) stack = parseRawArray remaining stack
+parseRawArray ('\n':remaining) stack = parseRawArray remaining stack
 parseRawArray (',':remaining) Closed = Just ("", remaining)
 parseRawArray (']':remaining) Closed = Just ("", remaining)
 parseRawArray (char:remaining) (Open stack) = do
@@ -88,6 +103,10 @@ parseRawArray (char:remaining) Closed = do
 parseRawObject :: String -> ParseState -> Maybe (String, String)
 parseRawObject [] Closed = Just ("", "")
 parseRawObject [] (Open _) = Nothing
+parseRawObject (' ':remaining) stack = parseRawObject remaining stack
+parseRawObject ('\r':remaining) stack = parseRawObject remaining stack
+parseRawObject ('\t':remaining) stack = parseRawObject remaining stack
+parseRawObject ('\n':remaining) stack = parseRawObject remaining stack
 parseRawObject (',':remaining) Closed = Just ("", remaining)
 parseRawObject ('}':remaining) Closed = Just ("", remaining)
 parseRawObject (char:remaining) (Open stack) = do

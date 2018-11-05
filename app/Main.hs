@@ -5,6 +5,7 @@ import           Control.Concurrent.Chan
 import           Network
 import           Responses               as R
 import           Server
+import           JsonParser
 
 main :: IO ()
 main = do
@@ -13,7 +14,15 @@ main = do
   startServer
     chan
     (PortNumber 8080)
-    [(GET "/theInternet" $ GetJustParams getTheInternet'), (GET "/myComputer" $ GetJustParams $ getFileContents')]
+    [ (GET "/theInternet" $ GetJustParams getTheInternet')
+    , (GET "/myComputer" $ GetJustParams $ getFileContents')
+    , (POST "/json" $ JustBody $ \body -> do
+        case parse body of
+          (Just parsedBody) -> case findKey parsedBody "a" of
+            (Just value) -> putStrLn $ show value
+            Nothing -> return ()
+          Nothing -> return ()
+        return $ R.OK [] R.Empty )]
 
 getTheInternet' :: [Param] -> GetResponse
 getTheInternet' params =

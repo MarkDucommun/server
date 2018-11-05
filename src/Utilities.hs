@@ -68,6 +68,7 @@ trim :: String -> String
 trim [] = []
 trim (' ':remaining) = trim remaining
 trim ('\r':remaining) = trim remaining
+trim ('\t':remaining) = trim remaining
 trim ('\n':remaining) = trim remaining
 trim remaining = reverse' $ trimEnd $ reverse' remaining
 
@@ -75,6 +76,7 @@ trimEnd :: String -> String
 trimEnd [] = []
 trimEnd (' ':remaining) = trimEnd remaining
 trimEnd ('\r':remaining) = trimEnd remaining
+trimEnd ('\t':remaining) = trimEnd remaining
 trimEnd ('\n':remaining) = trimEnd remaining
 trimEnd remaining = remaining
 
