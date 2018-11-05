@@ -1,4 +1,5 @@
 # TODOs
+* [ ] JSON parser removes all whitespace, even in strings
 * [ ] Write tests that send client requests with new-lines and no Content-Length  
 * [ ] Audit all `<-` in IO blocks
     * [ ] `main.hs:41`

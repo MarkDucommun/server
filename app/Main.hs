@@ -16,13 +16,12 @@ main = do
     (PortNumber 8080)
     [ (GET "/theInternet" $ GetJustParams getTheInternet')
     , (GET "/myComputer" $ GetJustParams $ getFileContents')
-    , (POST "/json" $ JustBody $ \body -> do
+    , (POST "/printA" $ JustBody $ \body -> do
         case parse body of
           (Just parsedBody) -> case findKey parsedBody "a" of
-            (Just value) -> putStrLn $ show value
-            Nothing -> return ()
-          Nothing -> return ()
-        return $ R.OK [] R.Empty )]
+            (Just value) -> return $ R.OK [] $ R.Text $ show value
+            Nothing -> return $ R.OK [] R.Empty
+          Nothing -> return $ R.OK [] R.Empty )]
 
 getTheInternet' :: [Param] -> GetResponse
 getTheInternet' params =
