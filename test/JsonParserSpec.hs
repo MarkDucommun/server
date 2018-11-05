@@ -29,6 +29,11 @@ spec = do
       let result = parse "[\"a\",\"b\",\"c\"]"
       result `shouldBe` Just expected
 
+    it "does not remove all whitespace in strings" $ do
+      let expected = ArrayNode [StringNode "a a\ra\na"]
+      let result = parse "[\"a a\ra\na\"]"
+      result `shouldBe` Just expected
+
     it "can parse a slightly more complex object" $ do
       let expected =
             ObjectNode

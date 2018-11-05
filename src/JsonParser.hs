@@ -85,9 +85,21 @@ parseObject string = do
 parseRawArray :: String -> ParseState -> Maybe (String, String)
 parseRawArray [] Closed = Just ("", "")
 parseRawArray [] (Open _) = Nothing
+parseRawArray (' ':remaining) stack@(Open ('"':_)) = do
+  (rawKeyValue, leftover) <- parseRawArray remaining stack
+  Just $ ([' '] ++ rawKeyValue, leftover)
 parseRawArray (' ':remaining) stack = parseRawArray remaining stack
+parseRawArray ('\r':remaining) stack@(Open ('"':_)) = do
+  (rawKeyValue, leftover) <- parseRawArray remaining stack
+  Just $ (['\r'] ++ rawKeyValue, leftover)
 parseRawArray ('\r':remaining) stack = parseRawArray remaining stack
+parseRawArray ('\t':remaining) stack@(Open ('"':_)) = do
+  (rawKeyValue, leftover) <- parseRawArray remaining stack
+  Just $ (['\t'] ++ rawKeyValue, leftover)
 parseRawArray ('\t':remaining) stack = parseRawArray remaining stack
+parseRawArray ('\n':remaining) stack@(Open ('"':_)) = do
+  (rawKeyValue, leftover) <- parseRawArray remaining stack
+  Just $ (['\n'] ++ rawKeyValue, leftover)
 parseRawArray ('\n':remaining) stack = parseRawArray remaining stack
 parseRawArray (',':remaining) Closed = Just ("", remaining)
 parseRawArray (']':remaining) Closed = Just ("", remaining)
@@ -103,9 +115,21 @@ parseRawArray (char:remaining) Closed = do
 parseRawObject :: String -> ParseState -> Maybe (String, String)
 parseRawObject [] Closed = Just ("", "")
 parseRawObject [] (Open _) = Nothing
+parseRawObject (' ':remaining) stack@(Open ('"':_)) = do
+  (rawKeyValue, leftover) <- parseRawObject remaining stack
+  Just $ ([' '] ++ rawKeyValue, leftover)
 parseRawObject (' ':remaining) stack = parseRawObject remaining stack
+parseRawObject ('\r':remaining) stack@(Open ('"':_)) = do
+  (rawKeyValue, leftover) <- parseRawObject remaining stack
+  Just $ (['\r'] ++ rawKeyValue, leftover)
 parseRawObject ('\r':remaining) stack = parseRawObject remaining stack
+parseRawObject ('\t':remaining) stack@(Open ('"':_)) = do
+  (rawKeyValue, leftover) <- parseRawObject remaining stack
+  Just $ (['\t'] ++ rawKeyValue, leftover)
 parseRawObject ('\t':remaining) stack = parseRawObject remaining stack
+parseRawObject ('\n':remaining) stack@(Open ('"':_)) = do
+  (rawKeyValue, leftover) <- parseRawObject remaining stack
+  Just $ (['\n'] ++ rawKeyValue, leftover)
 parseRawObject ('\n':remaining) stack = parseRawObject remaining stack
 parseRawObject (',':remaining) Closed = Just ("", remaining)
 parseRawObject ('}':remaining) Closed = Just ("", remaining)
