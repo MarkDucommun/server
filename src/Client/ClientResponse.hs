@@ -1,4 +1,4 @@
-module ClientResponse
+module Client.ClientResponse
   ( handleResponse
   , Response(OK, CREATED, BAD_REQUEST, NOT_FOUND, UNAUTHORIZED)
   , Body(Empty, Text)

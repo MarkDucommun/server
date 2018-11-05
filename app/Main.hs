@@ -1,6 +1,6 @@
 module Main where
 
-import           Client                  as C
+import           Client.Client                  as C
 import           Control.Concurrent.Chan
 import           Network
 import           Responses               as R

@@ -2,8 +2,8 @@ module ServerSpec
   ( spec
   ) where
 
-import           Client
-import           ClientResponse     as C
+import           Client.Client
+import           Client.ClientResponse     as C
 import           Control.Concurrent
 import           Control.Exception
 import           Data.Maybe

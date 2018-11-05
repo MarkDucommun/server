@@ -1,4 +1,4 @@
-module ClientRequest
+module Client.ClientRequest
   ( makeRequest
   , Host
   , Path

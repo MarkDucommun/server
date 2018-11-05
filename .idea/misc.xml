@@ -3,4 +3,11 @@
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_7" project-jdk-name="Haskell Tool Stack" project-jdk-type="Haskell Tool Stack SDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
+  <component name="SuppressABINotification">
+    <option name="modulesWithSuppressedNotConfigured">
+      <set>
+        <option value="server" />
+      </set>
+    </option>
+  </component>
 </project>

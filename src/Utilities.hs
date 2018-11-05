@@ -1,15 +1,21 @@
 module Utilities
   ( joinString
+  , joinStringWith
   , charsAfter
   , parseString
   , split
+  , splitAfterFirst
   , trim
+  , reverse'
   ) where
 
 joinString :: [String] -> String
-joinString [] = ""
-joinString (x:[]) = x
-joinString (x:xs) = x ++ "\n" ++ joinString xs
+joinString x = joinStringWith x '\n'
+
+joinStringWith :: [String] -> Char -> String
+joinStringWith [] _ = ""
+joinStringWith (x:[]) _ = x
+joinStringWith (x:xs) char = x ++ [char] ++ joinStringWith xs char
 
 charsAfter :: String -> String -> Maybe String
 charsAfter _ [] = Nothing
@@ -24,6 +30,12 @@ reverse' list = inner list []
   where
     inner [] result = result
     inner (x:xs) result = inner xs ([x] ++ result)
+
+splitAfterFirst :: String -> Char -> Maybe (String, String)
+splitAfterFirst remaining theChar = do
+  case split remaining theChar of
+    [] -> Nothing
+    (x:xs) -> Just (x, joinStringWith xs theChar)
 
 split :: String -> Char -> [String]
 split [] _ = []
@@ -56,14 +68,15 @@ trim :: String -> String
 trim [] = []
 trim (' ':remaining) = trim remaining
 trim ('\r':remaining) = trim remaining
+trim ('\n':remaining) = trim remaining
 trim remaining = reverse' $ trimEnd $ reverse' remaining
 
 trimEnd :: String -> String
 trimEnd [] = []
 trimEnd (' ':remaining) = trimEnd remaining
 trimEnd ('\r':remaining) = trimEnd remaining
+trimEnd ('\n':remaining) = trimEnd remaining
 trimEnd remaining = remaining
-
 
 parseChar :: Char -> Maybe Int
 parseChar '0' = Just 0

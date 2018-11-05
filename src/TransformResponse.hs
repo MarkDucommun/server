@@ -58,7 +58,7 @@ statusLine 201 = http ++ "201 CREATED" ++ endLine
 statusLine 400 = http ++ "400 BAD REQUEST" ++ endLine
 statusLine 401 = http ++ "401 UNAUTHORIZED" ++ endLine
 statusLine 404 = http ++ "404 NOT FOUND" ++ endLine
-statusLine _ = http ++ "400 BAD REQUEST" ++ endLine
+statusLine _   = http ++ "400 BAD REQUEST" ++ endLine
 
 contentLength length = "Content-Length: " ++ (show $ length) ++ endLine
 contentLengthZero = contentLength 0

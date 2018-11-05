@@ -37,3 +37,7 @@ spec = do
   describe "trim" $ do
     it "doesn't do anything to already trimmed strings" $ do
       trim "a" `shouldBe` "a"
+
+  describe "split after first" $ do
+    it "splits after the first instance" $ do
+      splitAfterFirst "a:b:c:d" ':' `shouldBe` (Just ("a", "b:c:d"))
