@@ -19,6 +19,14 @@ spec = do
       let result = parse "1"
       result `shouldBe` (Just $ IntNode 1)
 
+    it "can parse a false value" $ do
+      let result = parse "false"
+      result `shouldBe` (Just $ BoolNode False)
+
+    it "can parse a true value" $ do
+      let result = parse "true"
+      result `shouldBe` (Just $ BoolNode True)
+
     it "can parse a simple object" $ do
       let expected = ObjectNode [("a", StringNode "1"), ("b", StringNode "2")]
       let result = parse "{\"a\":\"1\",\"b\":\"2\"}"
