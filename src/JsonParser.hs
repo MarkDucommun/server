@@ -82,77 +82,57 @@ parseObject string = do
   rawKeyValues <- parseObject remaining
   Just $ [rawKeyValue] ++ rawKeyValues
 
-parseRawArray :: String -> ParseState -> Maybe (String, String)
-parseRawArray [] Closed = Just ("", "")
-parseRawArray [] (Open _) = Nothing
-parseRawArray (' ':remaining) stack@(Open ('"':_)) = do
-  (rawKeyValue, leftover) <- parseRawArray remaining stack
-  Just $ ([' '] ++ rawKeyValue, leftover)
-parseRawArray (' ':remaining) stack = parseRawArray remaining stack
-parseRawArray ('\r':remaining) stack@(Open ('"':_)) = do
-  (rawKeyValue, leftover) <- parseRawArray remaining stack
-  Just $ (['\r'] ++ rawKeyValue, leftover)
-parseRawArray ('\r':remaining) stack = parseRawArray remaining stack
-parseRawArray ('\t':remaining) stack@(Open ('"':_)) = do
-  (rawKeyValue, leftover) <- parseRawArray remaining stack
-  Just $ (['\t'] ++ rawKeyValue, leftover)
-parseRawArray ('\t':remaining) stack = parseRawArray remaining stack
-parseRawArray ('\n':remaining) stack@(Open ('"':_)) = do
-  (rawKeyValue, leftover) <- parseRawArray remaining stack
-  Just $ (['\n'] ++ rawKeyValue, leftover)
-parseRawArray ('\n':remaining) stack = parseRawArray remaining stack
-parseRawArray (',':remaining) Closed = Just ("", remaining)
-parseRawArray (']':remaining) Closed = Just ("", remaining)
-parseRawArray (char:remaining) (Open stack) = do
-  let newStack = updateStack char stack
-  (rawKeyValue, leftover) <- parseRawArray remaining newStack
-  Just $ ([char] ++ rawKeyValue, leftover)
-parseRawArray (char:remaining) Closed = do
-  let newStack = updateStack char []
-  (rawKeyValue, leftover) <- parseRawArray remaining newStack
-  Just $ ([char] ++ rawKeyValue, leftover)
-
 parseRawObject :: String -> ParseState -> Maybe (String, String)
 parseRawObject [] Closed = Just ("", "")
 parseRawObject [] (Open _) = Nothing
-parseRawObject (' ':remaining) stack@(Open ('"':_)) = do
-  (rawKeyValue, leftover) <- parseRawObject remaining stack
-  Just $ ([' '] ++ rawKeyValue, leftover)
+parseRawObject ('\\':'"':remaining) stack@(Open ('"':_)) = addCharObject '"' remaining stack
+parseRawObject ('"':remaining) stack@(Open ('"':_)) = addCharObject '"' remaining $ updateStack '"' stack
+parseRawObject (char:remaining) stack@(Open ('"':_)) = addCharObject char remaining stack
 parseRawObject (' ':remaining) stack = parseRawObject remaining stack
-parseRawObject ('\r':remaining) stack@(Open ('"':_)) = do
-  (rawKeyValue, leftover) <- parseRawObject remaining stack
-  Just $ (['\r'] ++ rawKeyValue, leftover)
 parseRawObject ('\r':remaining) stack = parseRawObject remaining stack
-parseRawObject ('\t':remaining) stack@(Open ('"':_)) = do
-  (rawKeyValue, leftover) <- parseRawObject remaining stack
-  Just $ (['\t'] ++ rawKeyValue, leftover)
 parseRawObject ('\t':remaining) stack = parseRawObject remaining stack
-parseRawObject ('\n':remaining) stack@(Open ('"':_)) = do
-  (rawKeyValue, leftover) <- parseRawObject remaining stack
-  Just $ (['\n'] ++ rawKeyValue, leftover)
 parseRawObject ('\n':remaining) stack = parseRawObject remaining stack
 parseRawObject (',':remaining) Closed = Just ("", remaining)
 parseRawObject ('}':remaining) Closed = Just ("", remaining)
-parseRawObject (char:remaining) (Open stack) = do
-  let newStack = updateStack char stack
-  (rawKeyValue, leftover) <- parseRawObject remaining newStack
-  Just $ ([char] ++ rawKeyValue, leftover)
-parseRawObject (char:remaining) Closed = do
-  let newStack = updateStack char []
-  (rawKeyValue, leftover) <- parseRawObject remaining newStack
+parseRawObject (char:remaining) stack = addCharObject char remaining $ updateStack char stack
+
+addCharObject :: Char -> String -> ParseState -> Maybe (String, String)
+addCharObject char remaining stack = do
+  (rawKeyValue, leftover) <- parseRawObject remaining stack
   Just $ ([char] ++ rawKeyValue, leftover)
 
-updateStack :: Char -> [Char] -> ParseState
-updateStack '"' ('"':[]) = Closed
-updateStack '"' ('"':remaining) = Open remaining
-updateStack '}' ('{':[]) = Closed
-updateStack '}' ('{':remaining) = Open remaining
-updateStack ']' ('[':[]) = Closed
-updateStack ']' ('[':remaining) = Open remaining
-updateStack '{' stack = Open $ ['{'] ++ stack
-updateStack '[' stack = Open $ ['['] ++ stack
-updateStack '"' stack = Open $ ['"'] ++ stack
-updateStack _ [] = Closed
-updateStack _ stack = Open stack
+parseRawArray :: String -> ParseState -> Maybe (String, String)
+parseRawArray [] Closed = Just ("", "")
+parseRawArray [] (Open _) = Nothing
+parseRawArray ('\\':'"':remaining) stack@(Open ('"':_)) = addCharArray '"' remaining stack
+parseRawArray ('"':remaining) stack@(Open ('"':_)) = addCharArray '"' remaining $ updateStack '"' stack
+parseRawArray (char:remaining) stack@(Open ('"':_)) = addCharArray char remaining stack
+parseRawArray (' ':remaining) stack = parseRawArray remaining stack
+parseRawArray ('\r':remaining) stack = parseRawArray remaining stack
+parseRawArray ('\t':remaining) stack = parseRawArray remaining stack
+parseRawArray ('\n':remaining) stack = parseRawArray remaining stack
+parseRawArray (',':remaining) Closed = Just ("", remaining)
+parseRawArray (']':remaining) Closed = Just ("", remaining)
+parseRawArray (char:remaining) stack = addCharArray char remaining $ updateStack char stack
+
+addCharArray :: Char -> String -> ParseState -> Maybe (String, String)
+addCharArray char remaining stack = do
+  (rawKeyValue, leftover) <- parseRawArray remaining stack
+  Just $ ([char] ++ rawKeyValue, leftover)
+
+updateStack :: Char -> ParseState -> ParseState
+updateStack '"' (Open ('"':[])) = Closed
+updateStack '"' (Open ('"':remaining)) = Open remaining
+updateStack '}' (Open ('{':[])) = Closed
+updateStack '}' (Open ('{':remaining)) = Open remaining
+updateStack ']' (Open ('[':[])) = Closed
+updateStack ']' (Open ('[':remaining)) = Open remaining
+updateStack '{' (Open stack) = Open $ ['{'] ++ stack
+updateStack '{' Closed = Open ['{']
+updateStack '[' (Open stack) = Open $ ['['] ++ stack
+updateStack '[' Closed = Open ['[']
+updateStack '"' (Open stack) = Open $ ['"'] ++ stack
+updateStack '"' Closed = Open ['"']
+updateStack _ stack = stack
 
 data ParseState = Closed | Open [Char]
