@@ -1,4 +1,6 @@
 # TODOs
+* [ ] Handle empty array
+* [ ] Handle empty object
 * [ ] Write tests that send client requests with new-lines and no Content-Length  
 * [ ] Audit all `<-` in IO blocks
     * [ ] `main.hs:41`

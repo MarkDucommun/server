@@ -1,10 +1,11 @@
 module JsonParser
   ( parse
   , findKey
-  , JsonNode (StringNode, IntNode, ObjectNode, ArrayNode, NullNode, BoolNode)
+  , JsonNode(StringNode, IntNode, ObjectNode, ArrayNode, NullNode,
+         BoolNode)
   ) where
 
-import Utilities
+import           Utilities
 
 data JsonNode
   = StringNode String
@@ -19,8 +20,8 @@ findKey :: JsonNode -> String -> Maybe JsonNode
 findKey (ObjectNode []) _ = Nothing
 findKey (ObjectNode ((aKey, value):remaining)) key = do
   if aKey == key
-  then Just value
-  else findKey (ObjectNode remaining) key
+    then Just value
+    else findKey (ObjectNode remaining) key
 findKey _ _ = Nothing
 
 parse :: String -> Maybe JsonNode
@@ -38,13 +39,12 @@ parse ('[':remaining) = do
   rawArrayValues <- parseArray remaining
   objects <- parseRawArrayValues rawArrayValues
   return $ ArrayNode objects
-parse string = do
-  let trimmed = trim string
-  case trimmed of
-    "null" -> Just NullNode
-    "true" -> Just $ BoolNode True
+parse string =
+  case trim string of
+    "null"  -> Just NullNode
+    "true"  -> Just $ BoolNode True
     "false" -> Just $ BoolNode False
-    _ -> parseString trimmed >>= \int -> Just $ IntNode int
+    trimmed -> parseString trimmed >>= \int -> Just $ IntNode int
 
 parseRawKeyValues :: [String] -> Maybe [(String, JsonNode)]
 parseRawKeyValues [] = Just []
@@ -56,12 +56,12 @@ parseRawKeyValues (x:xs) = do
   Just $ [(key, value)] ++ keyValues
 
 parseKey :: String -> Maybe String
-parseKey rawKey = do
-  let trimmedRawKey = trim rawKey
-  case trimmedRawKey of
-    ('"':remaining) -> case reverse' remaining of
-      ('"':reversedRemaining) -> Just $ reverse' reversedRemaining
-      _ -> Nothing
+parseKey rawKey =
+  case trim rawKey of
+    ('"':remaining) ->
+      case reverse' remaining of
+        ('"':reversedRemaining) -> Just $ reverse' reversedRemaining
+        _                       -> Nothing
     _ -> Nothing
 
 parseObject :: String -> Maybe [String]
@@ -93,9 +93,9 @@ addCharObject char remaining stack = do
 parseRawArrayValues :: [String] -> Maybe [JsonNode]
 parseRawArrayValues [] = Just []
 parseRawArrayValues (x:xs) = do
-   value <- parse x
-   values <- parseRawArrayValues xs
-   Just $ [value] ++ values
+  value <- parse x
+  values <- parseRawArrayValues xs
+  Just $ [value] ++ values
 
 parseArray :: String -> Maybe [String]
 parseArray [] = Just []
@@ -124,18 +124,20 @@ addCharArray char remaining stack = do
   Just $ ([char] ++ rawKeyValue, leftover)
 
 updateStack :: Char -> ParseState -> ParseState
-updateStack '"' (Open ('"':[])) = Closed
+updateStack '"' (Open ('"':[]))        = Closed
 updateStack '"' (Open ('"':remaining)) = Open remaining
-updateStack '}' (Open ('{':[])) = Closed
+updateStack '}' (Open ('{':[]))        = Closed
 updateStack '}' (Open ('{':remaining)) = Open remaining
-updateStack ']' (Open ('[':[])) = Closed
+updateStack ']' (Open ('[':[]))        = Closed
 updateStack ']' (Open ('[':remaining)) = Open remaining
-updateStack '{' (Open stack) = Open $ ['{'] ++ stack
-updateStack '{' Closed = Open ['{']
-updateStack '[' (Open stack) = Open $ ['['] ++ stack
-updateStack '[' Closed = Open ['[']
-updateStack '"' (Open stack) = Open $ ['"'] ++ stack
-updateStack '"' Closed = Open ['"']
-updateStack _ stack = stack
+updateStack '{' (Open stack)           = Open $ ['{'] ++ stack
+updateStack '{' Closed                 = Open ['{']
+updateStack '[' (Open stack)           = Open $ ['['] ++ stack
+updateStack '[' Closed                 = Open ['[']
+updateStack '"' (Open stack)           = Open $ ['"'] ++ stack
+updateStack '"' Closed                 = Open ['"']
+updateStack _ stack                    = stack
 
-data ParseState = Closed | Open [Char]
+data ParseState
+  = Closed
+  | Open [Char]
