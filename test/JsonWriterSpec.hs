@@ -26,5 +26,11 @@ spec = do
     it "can write an Array node" $ do
       (write $ ArrayNode [IntNode 1, StringNode "A"]) `shouldBe` "[1,\"A\"]"
 
+    it "can write an empty Array node" $ do
+      (write $ ArrayNode []) `shouldBe` "[]"
+
     it "can write an Object node" $ do
       (write $ ObjectNode [("A", IntNode 1), ("B", NullNode)]) `shouldBe` "{\"A\":1,\"B\":null}"
+
+    it "can write an empty Object node" $ do
+      (write $ ObjectNode []) `shouldBe` "{}"

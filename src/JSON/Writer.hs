@@ -14,9 +14,11 @@ write (BoolNode False) = "false"
 write NullNode = "null"
 
 writeArray :: [Node] -> String
+writeArray [] = ""
 writeArray (node:[]) = write node
 writeArray (node:nodes) = write node ++ "," ++ writeArray nodes
 
 writeObject :: [(String, Node)] -> String
+writeObject [] = ""
 writeObject ((key, value):[]) = "\"" ++ key ++  "\":" ++ write value
 writeObject ((key, value):nodes) = "\"" ++ key ++  "\":" ++ write value ++ "," ++ writeObject nodes
