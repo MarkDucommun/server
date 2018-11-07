@@ -1,6 +1,6 @@
 module JsonParserSpec where
 
-import           JsonParser
+import           JSON.Parser
 import           Test.Hspec
 
 spec :: Spec

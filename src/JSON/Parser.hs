@@ -1,22 +1,14 @@
-module JsonParser
+module JSON.Parser
   ( parse
   , findKey
-  , JsonNode(StringNode, IntNode, ObjectNode, ArrayNode, NullNode,
+  , Node(StringNode, IntNode, ObjectNode, ArrayNode, NullNode,
          BoolNode)
   ) where
 
 import           Utilities
+import           JSON.Node
 
-data JsonNode
-  = StringNode String
-  | IntNode Int
-  | BoolNode Bool
-  | ObjectNode [(String, JsonNode)]
-  | ArrayNode [JsonNode]
-  | NullNode
-  deriving (Show, Eq)
-
-findKey :: JsonNode -> String -> Maybe JsonNode
+findKey :: Node -> String -> Maybe Node
 findKey (ObjectNode []) _ = Nothing
 findKey (ObjectNode ((aKey, value):remaining)) key = do
   if aKey == key
@@ -24,7 +16,7 @@ findKey (ObjectNode ((aKey, value):remaining)) key = do
     else findKey (ObjectNode remaining) key
 findKey _ _ = Nothing
 
-parse :: String -> Maybe JsonNode
+parse :: String -> Maybe Node
 parse (' ':remaining) = parse remaining
 parse ('\r':remaining) = parse remaining
 parse ('\n':remaining) = parse remaining
@@ -46,7 +38,7 @@ parse string =
     "false" -> Just $ BoolNode False
     trimmed -> parseString trimmed >>= \int -> Just $ IntNode int
 
-parseRawKeyValues :: [String] -> Maybe [(String, JsonNode)]
+parseRawKeyValues :: [String] -> Maybe [(String, Node)]
 parseRawKeyValues [] = Just []
 parseRawKeyValues (x:xs) = do
   (rawKey, rawValue) <- splitAfterFirst x ':'
@@ -90,7 +82,7 @@ addCharObject char remaining stack = do
   (rawKeyValue, leftover) <- parseRawObject remaining stack
   Just $ ([char] ++ rawKeyValue, leftover)
 
-parseRawArrayValues :: [String] -> Maybe [JsonNode]
+parseRawArrayValues :: [String] -> Maybe [Node]
 parseRawArrayValues [] = Just []
 parseRawArrayValues (x:xs) = do
   value <- parse x

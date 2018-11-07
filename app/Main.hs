@@ -2,7 +2,8 @@ module Main where
 
 import           Client.Client           as C
 import           Control.Concurrent.Chan
-import           JsonParser
+import           JSON.Parser
+import           JSON.Writer
 import           Network
 import           Responses               as R
 import           Server
@@ -24,6 +25,10 @@ main = do
                (Just value) -> return $ R.OK [] $ Text $ show value
                Nothing      -> return $ R.OK [] R.Empty
            Nothing -> return $ R.OK [] R.Empty)
+    , (GET "/print" $
+       GetStatic $ R.OK [("Content-Type", "application/json")] $ R.Text $ write $
+       ObjectNode [("say", StringNode "hello")]
+       )
     ]
 
 getTheInternet' :: [Param] -> GetResponse

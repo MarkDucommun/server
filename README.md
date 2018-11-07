@@ -47,6 +47,7 @@ I hope you enjoy reading and modifying this as much as I have enjoyed creating i
     * [x] Client response
     * [x] Server request
     * [x] Server response
+1. JSON writer
 
 ### Backlog
 1. JSON parser
