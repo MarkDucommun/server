@@ -51,9 +51,9 @@ I hope you enjoy reading and modifying this as much as I have enjoyed creating i
 
 ### Backlog
 1. JSON parser
+1. Lightweight document store
 
 ### Icebox
-1. Lightweight document store
 1. HTML templating DSL
 1. Functional dependency injection
 1. Route matching based on passed params or headers
