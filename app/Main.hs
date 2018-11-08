@@ -5,8 +5,22 @@ import           Control.Concurrent.Chan
 import           JSON.Parser
 import           JSON.Writer
 import           Network
+import           Persistence.Read
+import           Persistence.Write
 import           Responses               as R
 import           Server
+
+storePath :: String
+storePath = "./assets/database.json"
+
+reader :: String -> IO (Maybe Node)
+reader = createReader storePath
+
+writer :: String -> Node -> IO ()
+writer key value = createWriter storePath key value
+
+okJson :: String -> IO R.Response
+okJson string = return $ R.OK [("Content-Type", "application/json")] $ R.Text string
 
 main :: IO ()
 main = do
@@ -17,18 +31,26 @@ main = do
     (PortNumber 8080)
     [ (GET "/theInternet" $ GetJustParams getTheInternet')
     , (GET "/myComputer" $ GetJustParams $ getFileContents')
-    , (POST "/printA" $
+    , (GET "/dog/{name}" $
+       GetJustPathVars $ \pathVars ->
+         Impure $
+         case findParam pathVars "name" of
+           (Just name) -> do
+             maybeNode <- reader name
+             case maybeNode of
+               (Just node) -> okJson $ write node
+               Nothing     -> return R.NOT_FOUND
+           Nothing -> return R.NOT_FOUND)
+    , (POST "/dog" $
        JustBody $ \body -> do
          case parse body of
            (Just parsedBody) ->
-             case findKey parsedBody "a" of
-               (Just value) -> return $ R.OK [] $ Text $ show value
-               Nothing      -> return $ R.OK [] R.Empty
+             case findKey parsedBody "name" of
+               (Just (StringNode value)) -> do
+                 writer value parsedBody
+                 return $ R.CREATED [] R.Empty
+               Nothing -> return $ R.OK [] R.Empty
            Nothing -> return $ R.OK [] R.Empty)
-    , (GET "/print" $
-       GetStatic $ R.OK [("Content-Type", "application/json")] $ R.Text $ write $
-       ObjectNode [("say", StringNode "hello")]
-       )
     ]
 
 getTheInternet' :: [Param] -> GetResponse

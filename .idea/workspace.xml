@@ -2,13 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f3bdd84b-dade-4a53-930d-21745643a705" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/Persistence/Read.hs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Persistence/Write.hs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test-assets/database.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test-assets/testReadDatabase.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test/PersistenceSpec.hs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/database.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Main.hs" beforeDir="false" afterPath="$PROJECT_DIR$/app/Main.hs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server.iml" beforeDir="false" afterPath="$PROJECT_DIR$/server.iml" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.stack-work/" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -44,7 +41,7 @@
           <entry key="gitignore" value="1" />
           <entry key="hs" value="193" />
           <entry key="iml" value="1" />
-          <entry key="json" value="4" />
+          <entry key="json" value="5" />
           <entry key="kt" value="1" />
           <entry key="md" value="16" />
           <entry key="txt" value="1" />
@@ -58,7 +55,7 @@
           <entry key="Cabal file" value="2" />
           <entry key="Haskell file" value="193" />
           <entry key="IDEA_MODULE" value="1" />
-          <entry key="JSON" value="2" />
+          <entry key="JSON" value="3" />
           <entry key="Kotlin" value="1" />
           <entry key="Markdown" value="16" />
           <entry key="PLAIN_TEXT" value="4" />
@@ -70,8 +67,8 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="LICENSE" value="30" />
-          <entry key="hs" value="80551" />
-          <entry key="json" value="204" />
+          <entry key="hs" value="81320" />
+          <entry key="json" value="211" />
           <entry key="md" value="2953" />
           <entry key="txt" value="257" />
           <entry key="yaml" value="201" />
@@ -79,8 +76,8 @@
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Haskell file" value="80551" />
-          <entry key="JSON" value="81" />
+          <entry key="Haskell file" value="81320" />
+          <entry key="JSON" value="88" />
           <entry key="Markdown" value="2953" />
           <entry key="PLAIN_TEXT" value="287" />
           <entry key="Scratch" value="123" />
@@ -96,27 +93,15 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/README.md">
-          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-            <state split_layout="FIRST">
-              <first_editor relative-caret-position="762">
-                <caret line="53" column="21" selection-start-line="53" selection-start-column="21" selection-end-line="53" selection-end-column="21" />
-              </first_editor>
-              <second_editor />
+        <entry file="file://$PROJECT_DIR$/src/Persistence/Read.hs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="90">
+              <caret line="6" selection-start-line="6" selection-end-line="6" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Persistence/Read.hs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="90">
-              <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Persistence/Write.hs">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="345">
@@ -129,7 +114,7 @@
         <entry file="file://$PROJECT_DIR$/test-assets/database.json">
           <provider selected="true" editor-type-id="text-editor">
             <state>
-              <caret column="13" lean-forward="true" selection-start-column="13" selection-end-column="13" />
+              <caret column="13" selection-start-column="13" selection-end-column="13" />
             </state>
           </provider>
         </entry>
@@ -137,8 +122,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/PersistenceSpec.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="360">
-              <caret line="24" lean-forward="true" selection-start-line="24" selection-end-line="24" />
+            <state relative-caret-position="345">
+              <caret line="23" column="45" lean-forward="true" selection-start-line="23" selection-start-column="45" selection-end-line="23" selection-end-column="45" />
             </state>
           </provider>
         </entry>
@@ -175,11 +160,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/Main.hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="156">
-              <caret line="25" column="55" lean-forward="true" selection-start-line="25" selection-start-column="55" selection-end-line="25" selection-end-column="55" />
+            <state relative-caret-position="348">
+              <caret line="31" column="38" lean-forward="true" selection-start-line="31" selection-start-column="38" selection-end-line="31" selection-end-column="38" />
             </state>
           </provider>
         </entry>
@@ -283,7 +268,6 @@
         <option value="$PROJECT_DIR$/test/JsonParserSpec.hs" />
         <option value="$PROJECT_DIR$/src/JSON/Parser.hs" />
         <option value="$PROJECT_DIR$/src/JSON/Node.hs" />
-        <option value="$PROJECT_DIR$/app/Main.hs" />
         <option value="$PROJECT_DIR$/test/JsonWriterSpec.hs" />
         <option value="$PROJECT_DIR$/src/JSON/Writer.hs" />
         <option value="$PROJECT_DIR$/README.md" />
@@ -291,6 +275,8 @@
         <option value="$PROJECT_DIR$/test/PersistenceSpec.hs" />
         <option value="$PROJECT_DIR$/test-assets/database.json" />
         <option value="$PROJECT_DIR$/src/Persistence/Write.hs" />
+        <option value="$PROJECT_DIR$/assets/database.json" />
+        <option value="$PROJECT_DIR$/app/Main.hs" />
       </list>
     </option>
   </component>
@@ -301,8 +287,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds" fullScreen="true">
-    <option name="width" value="1680" />
-    <option name="height" value="1050" />
+    <option name="x" value="401" />
+    <option name="y" value="23" />
+    <option name="width" value="1279" />
+    <option name="height" value="1027" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -316,27 +304,6 @@
             <path>
               <item name="server" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
               <item name="server" type="2674bda8:ScopeViewTreeModel$GroupNode" />
-            </path>
-            <path>
-              <item name="server" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="server" type="2674bda8:ScopeViewTreeModel$GroupNode" />
-              <item name="src" type="9f88c78c:ScopeViewTreeModel$FileNode" />
-            </path>
-            <path>
-              <item name="server" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="server" type="2674bda8:ScopeViewTreeModel$GroupNode" />
-              <item name="src" type="9f88c78c:ScopeViewTreeModel$FileNode" />
-              <item name="Persistence" type="9f88c78c:ScopeViewTreeModel$FileNode" />
-            </path>
-            <path>
-              <item name="server" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="server" type="2674bda8:ScopeViewTreeModel$GroupNode" />
-              <item name="test" type="9f88c78c:ScopeViewTreeModel$FileNode" />
-            </path>
-            <path>
-              <item name="server" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="server" type="2674bda8:ScopeViewTreeModel$GroupNode" />
-              <item name="test-assets" type="9f88c78c:ScopeViewTreeModel$FileNode" />
             </path>
           </expand>
           <select />
@@ -385,7 +352,7 @@
     <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file:///Users/markducommun/server/src/Server.hs" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1541644840374" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1541649880161" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="JSON" />
     <property name="jdk.selected.JAVA_MODULE" value="8.0" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
@@ -484,7 +451,7 @@
       <workItem from="1541209671375" duration="2365000" />
       <workItem from="1541248846634" duration="38191000" />
       <workItem from="1541596885709" duration="4976000" />
-      <workItem from="1541624959484" duration="4606000" />
+      <workItem from="1541624959484" duration="8343000" />
     </task>
     <task id="LOCAL-00001" summary="Refactoring path var extraction">
       <created>1539858830418</created>
@@ -532,7 +499,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="298751000" />
+    <option name="totallyTimeSpent" value="302488000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1680" height="1050" extended-state="0" />
@@ -618,13 +585,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="Mostly reformatting" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/test/Spec.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="43" selection-start-column="43" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="30">
@@ -869,13 +829,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/Main.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="156">
-          <caret line="25" column="55" lean-forward="true" selection-start-line="25" selection-start-column="55" selection-end-line="25" selection-end-column="55" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test-assets/testReadDatabase.json">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
@@ -896,21 +849,14 @@
     <entry file="file://$PROJECT_DIR$/src/Persistence/Read.hs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
-          <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/PersistenceSpec.hs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="24" lean-forward="true" selection-start-line="24" selection-end-line="24" />
+          <caret line="6" selection-start-line="6" selection-end-line="6" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test-assets/database.json">
       <provider selected="true" editor-type-id="text-editor">
         <state>
-          <caret column="13" lean-forward="true" selection-start-column="13" selection-end-column="13" />
+          <caret column="13" selection-start-column="13" selection-end-column="13" />
         </state>
       </provider>
     </entry>
@@ -918,6 +864,27 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="345">
           <caret line="23" column="1" selection-start-line="23" selection-start-column="1" selection-end-line="23" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/assets/database.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="110" selection-start-column="110" selection-end-column="110" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/PersistenceSpec.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="345">
+          <caret line="23" column="45" lean-forward="true" selection-start-line="23" selection-start-column="45" selection-end-line="23" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Main.hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="348">
+          <caret line="31" column="38" lean-forward="true" selection-start-line="31" selection-start-column="38" selection-end-line="31" selection-end-column="38" />
         </state>
       </provider>
     </entry>
