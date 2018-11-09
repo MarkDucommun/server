@@ -1,10 +1,10 @@
-module Responses
+module Server.Response.Types
   ( Response (OK, CREATED, BAD_REQUEST, NOT_FOUND, UNAUTHORIZED)
   , GetResponse (Pure, Impure)
   , Body (Empty, Text)
   ) where
 
-import Body
+import Server.Response.Body
 
 data Response
   = OK [Header] Body

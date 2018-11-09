@@ -1,10 +1,10 @@
-module PathVar
+module Server.Request.PathVar
   ( pathVars
   , PathVar
   ) where
 
 import           Utilities
-import           Request
+import           Server.Request.Types
 
 pathVars :: String -> String -> Maybe [PathVar]
 pathVars template aPath = do

@@ -7,4 +7,5 @@ data Node
   | ObjectNode [(String, Node)]
   | ArrayNode [Node]
   | NullNode
+  | EmptyNode
   deriving (Show, Eq)

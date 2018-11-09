@@ -1,7 +1,7 @@
 module PathVarSpec (spec) where
 
 import Test.Hspec
-import PathVar
+import Server.Request.PathVar
 
 spec :: Spec
 spec = do

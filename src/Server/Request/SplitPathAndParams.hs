@@ -1,7 +1,7 @@
-module SplitPathAndParams (splitPathAndParams) where
+module Server.Request.SplitPathAndParams (splitPathAndParams) where
 
 import Utilities
-import Request
+import Server.Request.Types
 
 splitPathAndParams :: String -> Maybe (Path, [Param])
 splitPathAndParams rawPath =

@@ -1,4 +1,4 @@
-module Client.Client
+module Client.Send
   ( get
   , post
   , put
@@ -12,8 +12,8 @@ module Client.Client
   , Header
   ) where
 
-import           Client.ClientRequest
-import           Client.ClientResponse
+import           Client.Request
+import           Client.Response
 import           Network
 import           System.IO
 

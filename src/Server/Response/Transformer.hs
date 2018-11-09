@@ -1,8 +1,8 @@
-module TransformResponse
+module Server.Response.Transformer
   ( transformResponse
   ) where
 
-import Responses
+import Server.Response.Types
 
 transformResponse :: Response -> [String]
 transformResponse NOT_FOUND =

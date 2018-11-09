@@ -2,14 +2,14 @@ module ServerSpec
   ( spec
   ) where
 
-import           Client.Client
-import           Client.ClientResponse     as C
+import           Client.Send
+import           Client.Response     as C
 import           Control.Concurrent
 import           Control.Exception
 import           Data.Maybe
 import           Network
-import           Responses          as R
-import           Server
+import           Server.Response.Types          as R
+import           Server.Start
 import           System.IO
 import           Test.Hspec
 

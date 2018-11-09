@@ -1,10 +1,10 @@
-module ResponseWriter
+module Server.Response.Writer
   ( sendResponse
   ) where
 
-import Responses
 import System.IO
-import TransformResponse
+import Server.Response.Types
+import Server.Response.Transformer
 
 sendResponse :: Handle -> IO Response -> IO ()
 sendResponse handle response = do

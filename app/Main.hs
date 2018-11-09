@@ -1,14 +1,14 @@
 module Main where
 
-import           Client.Client           as C
+import           Client.Send           as C
 import           Control.Concurrent.Chan
 import           JSON.Parser
 import           JSON.Writer
 import           Network
 import           Persistence.Read
 import           Persistence.Write
-import           Responses               as R
-import           Server
+import           Server.Response.Types               as R
+import           Server.Start
 
 storePath :: String
 storePath = "./assets/database.json"
@@ -49,8 +49,8 @@ main = do
                (Just (StringNode value)) -> do
                  writer value parsedBody
                  return $ R.CREATED [] R.Empty
-               Nothing -> return $ R.OK [] R.Empty
-           Nothing -> return $ R.OK [] R.Empty)
+               Nothing -> return $ R.BAD_REQUEST R.Empty
+           Nothing -> return $ R.BAD_REQUEST R.Empty)
     ]
 
 getTheInternet' :: [Param] -> GetResponse

@@ -2,7 +2,7 @@ module ClientSpec
   ( spec
   ) where
 
-import           Client.Client
+import           Client.Send
 import           Control.Concurrent
 import           Control.Exception
 import           Network

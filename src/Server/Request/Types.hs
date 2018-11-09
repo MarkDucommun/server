@@ -1,4 +1,4 @@
-module Request
+module Server.Request.Types
   ( Param
   , Path
   , PathVar
@@ -13,7 +13,7 @@ module Request
   , RequestWithBodyHandler(JustPathVars, JustBody, BodyAndPathVars, PathVarsHeaders, BodyPathVarsHeaders, BodyHeaders)
 ) where
 
-import Responses
+import Server.Response.Types
 
 type Param = (String, String)
 

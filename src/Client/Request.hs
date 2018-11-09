@@ -1,4 +1,4 @@
-module Client.ClientRequest
+module Client.Request
   ( makeRequest
   , Host
   , Path
@@ -6,7 +6,7 @@ module Client.ClientRequest
   , Body(Empty, Text)
   ) where
 
-import           Body
+import           Server.Response.Body
 import           Network
 import           System.IO
 import           Utilities

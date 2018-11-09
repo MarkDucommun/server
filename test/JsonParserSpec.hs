@@ -11,6 +11,11 @@ spec = do
       let result = parse "\"hello\""
       result `shouldBe` Just expected
 
+    it "can parse an empty string" $ do
+      let expected = EmptyNode
+      let result = parse ""
+      result `shouldBe` Just expected
+
     it "can parse a null value" $ do
       let result = parse "null"
       result `shouldBe` Just NullNode
@@ -32,9 +37,19 @@ spec = do
       let result = parse "{\"a\":\"1\",\"b\":\"2\"}"
       result `shouldBe` Just expected
 
+    it "can parse an empty object" $ do
+      let expected = ObjectNode []
+      let result = parse "{ }"
+      result `shouldBe` Just expected
+
     it "can parse an array object" $ do
       let expected = ArrayNode [StringNode "a", StringNode "b", StringNode "c"]
       let result = parse "[\"a\",\"b\",\"c\"]"
+      result `shouldBe` Just expected
+
+    it "can parse an empty array object" $ do
+      let expected = ArrayNode []
+      let result = parse "[]"
       result `shouldBe` Just expected
 
     it "does not remove all whitespace in strings" $ do

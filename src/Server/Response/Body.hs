@@ -1,5 +1,5 @@
-module Body
-  ( Body(Empty, Text)
+module Server.Response.Body
+  ( Body (Empty, Text)
   ) where
 
 data Body

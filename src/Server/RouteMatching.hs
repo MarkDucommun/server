@@ -1,4 +1,4 @@
-module RouteMatching
+module Server.RouteMatching
   ( matchRoute
   , Path
   , Param
@@ -9,9 +9,9 @@ module RouteMatching
   , RequestWithBodyHandler(JustPathVars, JustBody, BodyAndPathVars, PathVarsHeaders, BodyPathVarsHeaders, BodyHeaders)
   ) where
 
-import           PathVar
-import           Request
-import           Responses
+import           Server.Request.PathVar
+import           Server.Request.Types
+import           Server.Response.Types
 
 matchRoute :: [Route] -> Request -> IO Response
 matchRoute [] _ = return NOT_FOUND

@@ -1,13 +1,13 @@
-module RequestBuilder
+module Server.Request.Builder
  ( getRequest
  ) where
 
-import           Responses
-import           Request
+import           Server.Request.Types
+import           Server.Response.Types
 import           System.IO
 import           Utilities
-import           RouteMatching
-import           SplitPathAndParams
+import           Server.RouteMatching
+import           Server.Request.SplitPathAndParams
 
 getRequest :: Handle -> IO (Maybe Request)
 getRequest handle = do

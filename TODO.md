@@ -1,6 +1,5 @@
 # TODOs
-* [ ] Handle empty array
-* [ ] Handle empty object
+* [ ] Handle empty object - still some funkiness
 * [ ] Write tests that send client requests with new-lines and no Content-Length  
 * [ ] Audit all `<-` in IO blocks
     * [ ] `main.hs:41`
@@ -43,6 +42,7 @@
 * [ ] Extract `getBodyByEmptyLine` 
 
 ## Completed   
+* [x] Handle empty array
 * [x] JSON parser removes all whitespace, even in strings
 * [x] Test for writing CREATED responses
 * [x] Write tests that send client requests with Content-Length and no new-lines  

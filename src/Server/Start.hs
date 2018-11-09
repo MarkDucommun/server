@@ -1,4 +1,4 @@
-module Server
+module Server.Start
   ( startServer
   , startSimpleServer
   , Path
@@ -11,13 +11,13 @@ module Server
   , Request(GetRequest, PostRequest, PutRequest, DeleteRequest)
   ) where
 
-import           Control.Concurrent.Chan
 import           Network
-import           RequestBuilder
-import           Responses
-import           ResponseWriter
-import           RouteMatching
 import           System.IO
+import           Control.Concurrent.Chan
+import           Server.Request.Builder
+import           Server.Response.Types
+import           Server.Response.Writer
+import           Server.RouteMatching
 import           Utilities
 
 startServer :: (Chan Bool) -> PortID -> [Route] -> IO ()

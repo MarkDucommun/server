@@ -2,7 +2,7 @@ module JSON.Parser
   ( parse
   , findKey
   , Node(StringNode, IntNode, ObjectNode, ArrayNode, NullNode,
-         BoolNode)
+         BoolNode, EmptyNode)
   ) where
 
 import           Utilities
@@ -17,6 +17,7 @@ findKey (ObjectNode ((aKey, value):remaining)) key = do
 findKey _ _ = Nothing
 
 parse :: String -> Maybe Node
+parse [] = Just EmptyNode
 parse (' ':remaining) = parse remaining
 parse ('\r':remaining) = parse remaining
 parse ('\n':remaining) = parse remaining
@@ -82,19 +83,20 @@ addCharObject char remaining stack = do
   (rawKeyValue, leftover) <- parseRawObject remaining stack
   Just $ ([char] ++ rawKeyValue, leftover)
 
-parseRawArrayValues :: [String] -> Maybe [Node]
-parseRawArrayValues [] = Just []
-parseRawArrayValues (x:xs) = do
-  value <- parse x
-  values <- parseRawArrayValues xs
-  Just $ [value] ++ values
-
 parseArray :: String -> Maybe [String]
 parseArray [] = Just []
 parseArray string = do
   (rawKeyValue, remaining) <- parseRawArray string Closed
   rawKeyValues <- parseArray remaining
   Just $ [rawKeyValue] ++ rawKeyValues
+
+parseRawArrayValues :: [String] -> Maybe [Node]
+parseRawArrayValues [] = Just []
+parseRawArrayValues [""] = Just []
+parseRawArrayValues (x:xs) = do
+  value <- parse x
+  values <- parseRawArrayValues xs
+  Just $ [value] ++ values
 
 parseRawArray :: String -> ParseState -> Maybe (String, String)
 parseRawArray [] Closed = Just ("", "")
